@@ -49,3 +49,12 @@ def test_events_check_turn_ownership(client):
 def test_insights(client):
     body = client.get("/api/insights?days=7").json()
     assert isinstance(body, dict) and body
+
+
+def test_hosted_postgres_url_gets_psycopg_driver():
+    from propsearch.config import Settings
+
+    for raw in ("postgres://u:p@h:5432/db", "postgresql://u:p@h:5432/db"):
+        assert Settings(database_url=raw).database_url == "postgresql+psycopg://u:p@h:5432/db"
+    already = "postgresql+psycopg://u:p@h/db"
+    assert Settings(database_url=already).database_url == already

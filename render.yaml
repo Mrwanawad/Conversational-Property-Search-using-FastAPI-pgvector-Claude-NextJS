@@ -1,0 +1,36 @@
+# Render Blueprint: FastAPI (Docker) + Postgres. Render Postgres ships pgvector; the app runs
+# CREATE EXTENSION vector and seeds the synthetic inventory on first boot.
+databases:
+  - name: propsearch-db
+    plan: free
+    databaseName: propsearch
+    user: propsearch
+
+services:
+  - type: web
+    name: propsearch-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: propsearch-db
+          property: connectionString
+      - key: APP_ENV
+        value: prod
+      - key: PARSER
+        value: rules
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: EMBEDDER
+        value: hashing
+      - key: RERANKER
+        value: none
+      - key: LANGFUSE_PUBLIC_KEY
+        sync: false
+      - key: LANGFUSE_SECRET_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

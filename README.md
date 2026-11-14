@@ -6,6 +6,10 @@ This service turns one chat message (Arabic, Franco-Arabic, English or mixed) in
 
 Every price, size and unit code in a reply comes from the database. No model ever writes a number.
 
+<p align="center"><img src="docs/demo.gif" width="100%" alt="Demo: an Egyptian Arabic query is parsed into filters, ranked units appear with reasons, a one-tap 'cheaper' refinement, payment plans and an inquiry" /></p>
+
+**Live demo:** _coming soon_ (synthetic inventory; the first search after idle can take up to a minute while the free API instance wakes up).
+
 ## How a turn works
 
 ```mermaid
@@ -63,7 +67,7 @@ You need Python 3.11+ and Postgres with pgvector.
 docker compose up --build
 ```
 
-The API is on http://localhost:8000. Swagger is at `/docs`. The synthetic inventory (14 developers, 45 compounds, 1,492 units) is seeded on first start.
+The chat UI is on http://localhost:3000 and the API on http://localhost:8000 (Swagger at `/docs`). The synthetic inventory (14 developers, 45 compounds, 1,492 units) is seeded on first start.
 
 Without Docker:
 
@@ -89,6 +93,43 @@ curl -s localhost:8000/api/search -H "content-type: application/json" -d '{"mess
 
 Send the returned `session_id` with the next message to refine ("cheaper", "more", "with a garden", "new search").
 
+Web UI without Docker (API running on :8000):
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+## Web UI
+
+Next.js chat in `frontend/`. The browser only calls same-origin `/api/*`; Next rewrites it to the FastAPI service (`API_URL`), so there is no CORS setup and the backend address never ships to the client.
+
+- Arabic replies render right-to-left, English left-to-right, chosen per turn from `reply_language`.
+- Each turn shows what was understood as filter pills, so a wrong parse is visible at once.
+- Unit cards show price, price per m², best payment plan and the match reasons from the API. Details opens payment plans and the developer's on-time record.
+- Clarification options and follow-up suggestions are one-tap chips.
+- Details and Inquire clicks are posted to `/api/events` as implicit relevance labels.
+- `/insights` shows the monitoring view: KPIs, demand vs supply by area, unmet demand, synonym review queue, language mix, latency by stage.
+
+## End-to-end tests
+
+Playwright drives the real stack (UI, API, Postgres) on desktop and mobile viewports: Arabic RTL search, English and Franco-Arabic parsing, clarification, follow-up refinement, impossible queries, unit details and inquiry, and the insights page. 16/16 pass.
+
+```bash
+docker compose up -d --build --wait
+cd frontend && npx playwright install chromium && npx playwright test
+```
+
+The README demo is scripted in `docs/demo/scene.py` (Playwright) so it can be re-recorded when the UI changes.
+
+Point it at a deployment with `E2E_BASE_URL=https://... npx playwright test`. CI runs it on every push after the unit tests and the eval gate.
+
+## Deploy
+
+- **API + Postgres on Render:** `render.yaml` is a Blueprint (Docker web service + Postgres with pgvector). New Blueprint, pick the repo, and set `ANTHROPIC_API_KEY` / Langfuse keys if you want them. The app creates the `vector` extension and seeds the inventory on first boot. Hosted `postgres://` URLs are converted to the psycopg driver automatically.
+- **Web on Vercel:** import the repo with root directory `frontend` and set `API_URL` to the Render service URL.
+
 ## API
 
 | Method | Path | Purpose |
@@ -113,7 +154,7 @@ See `.env.example`.
 
 ## Stack
 
-Python, FastAPI, Pydantic, SQLAlchemy, PostgreSQL + pgvector, rank-bm25, sentence-transformers (bge-m3, bge-reranker-v2-m3), Anthropic SDK (tool calling), camel-tools (optional), Langfuse, pytest, ruff, Docker, GitHub Actions.
+Python, FastAPI, Pydantic, SQLAlchemy, PostgreSQL + pgvector, rank-bm25, sentence-transformers (bge-m3, bge-reranker-v2-m3), Anthropic SDK (tool calling), camel-tools (optional), Langfuse, Next.js, TypeScript, Playwright, pytest, ruff, Docker, GitHub Actions, Render, Vercel.
 
 ## Design choices
 
@@ -128,9 +169,8 @@ All inventory is synthetic (`data/generate.py`, fixed seed). Developer, compound
 
 ## Not built yet
 
-- Chat web UI (Next.js, RTL). The API is complete; the UI is the next piece.
-- Scored Claude parser run and bge-m3 / reranker retrieval comparison (NDCG@10, recall@20) on a larger labelled set.
-- Deployment (Render for API + Postgres).
+- Scored Claude parser run and bge-m3 / reranker retrieval comparison (NDCG@10, recall@20, MRR) on a larger labelled set. The click and inquiry events the UI logs are the intended source of those labels.
+- The live demo runs the hashing embedder and no reranker to fit a free 512 MB instance. bge-m3 and the cross-encoder need a bigger box.
 
 ## License
 
