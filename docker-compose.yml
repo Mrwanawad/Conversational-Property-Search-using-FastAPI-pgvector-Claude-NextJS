@@ -1,0 +1,30 @@
+services:
+  db:
+    image: pgvector/pgvector:0.8.0-pg17
+    environment:
+      POSTGRES_USER: propsearch
+      POSTGRES_PASSWORD: propsearch
+      POSTGRES_DB: propsearch
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U propsearch"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: .
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql+psycopg://propsearch:propsearch@db:5432/propsearch
+      PARSER: ${PARSER:-rules}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      EMBEDDER: ${EMBEDDER:-hashing}
+      RERANKER: ${RERANKER:-none}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+    ports: ["8000:8000"]
+
+volumes:
+  pgdata:

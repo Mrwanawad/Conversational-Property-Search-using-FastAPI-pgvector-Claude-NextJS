@@ -1,0 +1,206 @@
+# Surface forms -> concept ids. Arabic (MSA + Egyptian), Franco-Arabic and English.
+# Every surface is normalised with the same function as user queries before matching
+# (diacritics, alef/yaa/taa-marbuta, Arabic-Indic digits, repeated letters).
+# A surface may map to several concepts, e.g. the Arabic dual "غرفتين" = 2 + bedrooms.
+# Add rows here when the zero-result / unknown-term log in /insights shows new phrasing.
+
+areas:
+  area:new_cairo: [new cairo, fifth settlement, 5th settlement, the 5th settlement, tagamo3, el tagamo3, eltagamo3,
+    tagamoa, el tagamoa, tagamo3 el khames, el tagamo3 el khames, tagamoa el khames, new cairo city, settlement,
+    القاهرة الجديدة, القاهره الجديده, التجمع, التجمع الخامس, تجمع, الخامس, التجمع 5]
+  area:mostakbal_city: [mostakbal, mostakbal city, el mostakbal, future city, mostaqbal, mostaqbal city,
+    المستقبل, مدينة المستقبل, مستقبل سيتي, المستقبل سيتي]
+  area:new_capital: [new capital, administrative capital, new administrative capital, the new capital, nac,
+    el 3asema, 3asema, el asema, asema, el 3asma, 3asma, el 3asema el edareya, capital city,
+    العاصمة, العاصمة الادارية, العاصمة الإدارية الجديدة, العاصمه الاداريه, الاداريه]
+  area:shorouk: [shorouk, el shorouk, shorouk city, elshorouk, shorok, el shorok, الشروق, مدينة الشروق]
+  area:sheikh_zayed: [sheikh zayed, el sheikh zayed, shiekh zayed, sheikh zayd, el sheikh zayd, zayed city,
+    الشيخ زايد, مدينة الشيخ زايد]
+  area:new_zayed: [new zayed, zayed el gedida, zayed el gdida, zayed elgdeeda, zayed el gededa,
+    زايد الجديدة, نيو زايد, زايد الجديده]
+  area:october: [6 october, 6th of october, 6th october, october, october city, 6 oct, 6th of oct, sixth of october,
+    6 oktobar, oktobar, اكتوبر, 6 اكتوبر, السادس من اكتوبر, ستة اكتوبر, مدينة 6 اكتوبر, اكتوبر الجديدة]
+  area:north_coast: [north coast, sahel, el sahel, sa7el, el sa7el, sahel shamaly, el sa7el el shamaly,
+    الساحل, الساحل الشمالي, الساحل الشمالى]
+  area:ain_sokhna: [sokhna, ain sokhna, el sokhna, so5na, el so5na, ein sokhna, el ain el sokhna, al sokhna,
+    السخنة, العين السخنة, العين السخنه, السخنه]
+  group:east_cairo: [east cairo, east of cairo, shar2 el qahera, sharq el qahera, شرق القاهرة]
+  group:west_cairo: [west cairo, west of cairo, gharb el qahera, ghar el qahera, غرب القاهرة]
+  ambiguous:zayed: [zayed, zayd, el zayed, زايد]
+
+landmarks:
+  landmark:auc: [auc, american university, the american university, el gam3a el amrikia, el gam3a el amrikya,
+    gam3a amrikia, الجامعة الامريكية, الجامعه الامريكيه, الامريكيه, الجامعة الأمريكية]
+  landmark:cairo_airport: [airport, cairo airport, the airport, el matar, matar, المطار, مطار القاهرة]
+  landmark:smart_village: [smart village, el qarya el zakeya, القرية الذكية, القريه الذكيه, سمارت فيلدج]
+  landmark:mall_of_arabia: [mall of arabia, moa, mol el arab, mall el arab, مول العرب]
+  landmark:mall_of_egypt: [mall of egypt, moe, mol masr, mall masr, مول مصر]
+  landmark:gem: [grand egyptian museum, gem, egyptian museum, el mat7af el kebir, el mat7af el masry el kebir,
+    المتحف المصري الكبير, المتحف الكبير, المتحف]
+  landmark:capital_cbd: [cbd, business district, iconic tower, the iconic tower, el borg el ay2ony,
+    البرج الايقوني, حي المال, حي المال والاعمال]
+  landmark:new_alamein: [alamein, el alamein, new alamein, el 3alamein, 3alamein, العلمين, العلمين الجديدة]
+
+types:
+  type:apartment: [apartment, apartments, apt, apts, flat, flats, sha2a, sha2, sha2et, shaqa, shaqqa, sha2a2,
+    shoa2, شقة, شقه, شقق, شقتين]
+  type:duplex: [duplex, duplexes, dublex, doplex, دوبلكس, دوبلكسات]
+  type:penthouse: [penthouse, pent house, penthouses, بنتهاوس, بنت هاوس, بنتهاوز]
+  type:studio: [studio, studios, ستوديو, استوديو, استديو]
+  type:townhouse: [townhouse, town house, townhouses, town, تاون هاوس, تاون, تاونهاوس]
+  type:twin_house: [twin house, twinhouse, twin, twin villa, توين هاوس, توين, تون هاوس]
+  type:villa: [villa, villas, standalone, stand alone, standalone villa, fella, filla, vella, fellal,
+    فيلا, فيلل, فيلات, ستاند الون, ستاندالون, فيلا مستقلة]
+  type:chalet: [chalet, chalets, shalieh, shalih, shaleh, shale, shalee, shaly, shalehat, shaleih, شاليه, شاليهات, شالية]
+
+finishing:
+  finish:fully_finished: [fully finished, finished, full finishing, fully-finished, metshateba, metshatba,
+    mtshtba, metshateb, met4teba, tashteeb kamel, tashtib kamel, متشطب, متشطبه, متشطبة, تشطيب كامل,
+    كاملة التشطيب, كامل التشطيب, تشطيب سوبر لوكس]
+  finish:semi_finished: [semi finished, semi-finished, semifinished, semi, nos tashteeb, nus tashteeb, nos tashtib,
+    نص تشطيب, نصف تشطيب, نص تشطيبه]
+  finish:core_shell: [core and shell, core & shell, core shell, toub a7mar, tob a7mar, 3al toub, 3ala el toub,
+    طوب احمر, على الطوب الاحمر, ع الطوب, على الطوب]
+
+delivery:
+  ready: [ready to move, ready, rtm, immediate delivery, immediately, delivered, move in now, move-in ready,
+    ready for living, estelam fawry, estelam fawri, estlam fory, estelam fory, esteelam fawri, gahza, gahz,
+    fawry, fawri, استلام فوري, استلام فورى, جاهز للسكن, جاهزة للسكن, جاهزه, جاهزة, جاهز, تسليم فوري,
+    فوري, استلام حالا, متسلمة, استلام فورا]
+  kw:delivery: [delivery, delivered by, delivery in, handover, estelam, estlam, tasleem, استلام, تسليم, التسليم,
+    الاستلام]
+
+amenities:
+  amenity:garden: [garden, private garden, with garden, gnena, geneina, gneina, genena, ganeena, garden view,
+    جنينة, جنينه, حديقة, حديقه, جاردن, حديقة خاصة]
+  amenity:roof: [roof, rooftop, roof top, private roof, rof, روف, رووف, سطح, روف خاص]
+  amenity:private_pool: [private pool, own pool, private swimming pool, besin khas, pool khas,
+    حمام سباحة خاص, بيسين خاص, بسين خاص, بول خاص]
+  amenity:swimming_pool: [pool, pools, swimming pool, swimming pools, piscine, besin, bisin, pool compound,
+    حمام سباحة, حمامات سباحة, بيسين, بسين, بيسينات]
+  amenity:clubhouse: [club house, clubhouse, club, social club, el club, كلوب هاوس, نادي, نادى, كلوب]
+  amenity:gym: [gym, gymnasium, fitness, jim, جيم, صالة العاب رياضية, جيم مجهز]
+  amenity:kids_area: [kids area, playground, kids playground, play area, kids zone, mal3ab atfal,
+    منطقة العاب اطفال, ملاعب اطفال, العاب اطفال, منطقة اطفال]
+  amenity:crystal_lagoon: [lagoon, crystal lagoon, lagoons, laggon, لاجون, لاجونز, كريستال لاجون, بحيرة صناعية]
+  amenity:beach_access: [beach, on the beach, beachfront, beach front, first row, 3al ba7r, 3ala el ba7r, saf awel,
+    beach access, private beach, على البحر, صف اول, صف أول, شاطئ, شاطئ خاص, ع البحر]
+  amenity:sea_view: [sea view, seaview, sea-view, view ba7r, view bahr, fully sea view, see view, view 3al ba7r,
+    فيو بحر, فيو على البحر, اطلالة على البحر, اطلاله بحر, اطلالة بحرية]
+  amenity:golf: [golf, golf course, golf view, جولف, ملعب جولف]
+  amenity:security: [security, gated, gated community, 24/7 security, secured, amn, حراسة, امن, سيكيوريتي, كمبوند مقفول]
+  amenity:parking: [parking, garage, covered parking, garag, جراج, باركينج, موقف سيارات, جراش]
+  amenity:maids_room: [maid room, maids room, maid's room, nanny room, oda dada, odet dada, 2odet el dada,
+    غرفة مربية, اوضة دادة, اوضة الدادة, غرفة خادمة, غرفة دادة]
+
+numbers:
+  unit:million: [million, millions, mil, mill, mio, mn, m, mlyon, milyon, malyon, melyon, mlyoon, mlion, milion,
+    مليون, ملايين, مليون جنيه, ملاين]
+  unit:thousand: [thousand, thousands, k, alf, alaf, ala2f, aalaf, الف, الاف, ألف, آلاف]
+  unit:half: [half, nos, nus, w nos, wa nos, ونص, نص, ونصف, نصف]
+  unit:quarter: [quarter, w rob3, ربع, وربع]
+  unit:egp: [egp, le, l.e, pounds, pound, gneh, geneh, ginih, جنيه, جنية, ج]
+  unit:percent: ["%", percent, pct, fel meya, في المية, في الميه, بالمية, ٪]
+  num:1: [one, single, wa7ed, wahed, wa7da, wahda, واحد, واحدة, واحده]
+  num:2: [two, etnein, etnen, itnein, itnin, tnein, اتنين, اثنين, اتنان, اثنان]
+  num:3: [three, talata, tlata, tlat, talat, تلاتة, تلاته, ثلاثة, ثلاث, تلات, ثلاثه]
+  num:4: [four, arba3a, arba3, arba3ah, اربعة, اربعه, اربع]
+  num:5: [five, khamsa, 5amsa, khams, خمسة, خمسه, خمس]
+  num:6: [six, setta, sitta, ستة, سته, ست, سته]
+  num:7: [seven, sab3a, saba3, sab3, سبعة, سبعه, سبع]
+  num:8: [eight, tamanya, tamania, taman, tamn, تمانية, تمانيه, ثمانية, ثمانيه, تمن, تماني, ثمان]
+  num:9: [nine, tes3a, tis3a, tes3, تسعة, تسعه, تسع]
+  num:10: [ten, 3ashra, 3ashara, 3ashar, عشرة, عشره, عشر]
+  num:12: [twelve, etnashar, itnashar, اتناشر, اثنا عشر]
+  num:15: [fifteen, khamastashar, 5amastashar, خمستاشر, خمسة عشر]
+  dual:million: [two million, 2 million, milyonen, mlyonen, مليونين]
+  dual:years: [two years, sanaten, sanatein, سنتين]
+  dual:bedrooms: [two bedrooms, 2odten, odten, oudten, ouditen, اوضتين, غرفتين, اوضتين نوم]
+  dual:thousand: [alfen, الفين]
+
+keywords:
+  kw:under: [under, below, less than, lower than, max, maximum, up to, upto, within, not more than, no more than,
+    budget, my budget, ta7t, ta7at, ta7te, a2al men, a2al mn, akl men, mesh aktar men, l7ad, le7ad, la7ad, max budget,
+    mizanya, mizaneya, el mizanya, تحت, اقل من, لحد, بحد اقصى, حد اقصى, مش اكتر من, مش اكثر من, ميزانيتي, ميزانية,
+    الميزانية, في حدود ال, ماكس, ميزانيه, بحد أقصى, ما يزيدش عن]
+  kw:over: [over, above, more than, at least, minimum, starting from, starting, fo2, fou2, a3la men,
+    aktar men, akter men, mn awel, فوق, اكتر من, اكثر من, على الاقل, ع الاقل, يبدا من, ابتداء من]
+  kw:around: [around, about, approx, approximately, roughly, "~", ha2ali, 7awaly, 7awali, hawaly, fe 7dood,
+    fi 7oudod, fe 7odod, ta2reban, حوالي, حوالى, في حدود, تقريبا, تقريباً, بحدود]
+  kw:between: [between, ma bein, mabein, ben, bein, بين, ما بين]
+  kw:to: [to, or, aw, او, till, until, "-", le, l, and, w, ل, الى, لـ, إلى, و, لغاية, لحد]
+  kw:from: [from, men, mn, starting at, من]
+  kw:years: [years, year, yrs, yr, y, sneen, seneen, snin, sinin, sana, sanawat, years installments,
+    سنين, سنوات, سنة, سنه, عام, اعوام]
+  kw:installments: [installments, installment, instalments, instalment, payment plan, payment plans, plan, plans,
+    on installments, ta2seet, ta2sit, ta2seit, takseet, ta2set, a2sat, aqsat, نظام تقسيط, تقسيط, اقساط, قسط,
+    نظام سداد, خطة سداد, بالتقسيط, اقساط على]
+  kw:down_payment: [down payment, downpayment, down-payment, dp, down, deposit, mo2adam, mokadam, mo2dam, ma2adam,
+    mu2adam, mokaddam, مقدم, دفعة مقدمة, دفعه مقدمه, المقدم, اول دفعة]
+  kw:monthly: [monthly, per month, a month, monthly installment, monthly payment, shahry, shahri, fel shahr,
+    kol shahr, el shahr, شهري, شهرى, في الشهر, شهريا, قسط شهري, كل شهر, بالشهر]
+  kw:bedrooms: [bedrooms, bedroom, br, bed, beds, bdr, rooms, room, ghoraf, ghorfa, owad, 2owad, ewad, oda,
+    2oda, ouda, odas, owda, 2wad, غرف, غرفة, غرفه, اوض, اوضة, اوضه, غرف نوم, غرفة نوم, اوض نوم, نوم]
+  kw:sqm: [m2, sqm, sq m, square meter, square meters, sq meters, sqms, meter, meters, metr, metre, mtr,
+    metr morab3, متر, م2, متر مربع, مترمربع, امتار, مساحة]
+  kw:near: [near, near to, close to, closer to, close, next to, beside, walking distance, walking distance to,
+    minutes from, nearby, 2orayeb men, orayeb men, 2orayeb, orayeb, 2orayeba, gamb, ganb, a2rab le, a2rab l,
+    aqrab le, عند, قريب من, قريبة من, قريبه من, جنب, بجوار, اقرب ل, اقرب لل, قريب, قريبة, على بعد, دقايق من]
+  kw:in: [in, at, fe, fi, f, في, ف, فى]
+
+refinements:
+  refine:cheaper: [cheaper, less expensive, lower price, lower budget, more affordable, budget friendly,
+    something cheaper, ar5as, arkhas, ar5s, ar5as shwaya, arkhas shwaya, ارخص, أرخص, ارخص شوية, اقل سعر,
+    سعر اقل, اوفر, حاجة ارخص]
+  refine:pricier: [more expensive, higher end, luxury, more premium, aghla, a8la, اغلى, اغلي, ارقى, افخم]
+  refine:bigger: [bigger, larger, more space, more spacious, akbar, akbar shwaya, ekbar, awsa3, اكبر, أكبر,
+    مساحة اكبر, اوسع, اكبر شوية]
+  refine:smaller: [smaller, as8ar, asghar, a9ghar, اصغر, أصغر, مساحة اصغر]
+  refine:more: [more, show more, more options, other options, tany, ghayrhom, gherhom, kaman, others,
+    غيرهم, كمان, تاني, اختيارات تانية, حاجات تانية, اكتر, غير دول]
+  sort:price_asc: [cheapest, the cheapest, lowest price, lowest prices, ar5as 7aga, arkhas 7aga, el ar5as,
+    ارخص حاجة, ارخص حاجه, الارخص, ارخص وحدة, اقل الاسعار]
+  reset: [new search, start over, reset, from scratch, men el awel, mn el awel, nebda2 men gedid,
+    بحث جديد, من الاول, من الأول, ابدا من جديد, نبدا من جديد]
+
+soft:
+  soft:quiet: [quiet, calm, peaceful, silent, hady, hadi, hadya, hadia, hedoo2, هادي, هادئ, هادية, هاديه, هدوء,
+    بعيد عن الدوشة, بعيد عن الزحمة]
+  soft:family: [family, families, family friendly, family-friendly, kids, children, 3eila, 3ela, 3a2ely,
+    عيلة, عائلي, عائلية, عائله, للعيلة, للعائلة, اطفال, عيالي]
+  soft:schools: [schools, school, near schools, close to schools, madares, madrasa, مدارس, مدرسة, المدارس]
+  soft:hospital: [hospital, hospitals, mostashfa, مستشفى, مستشفي, مستشفيات]
+  soft:light: [natural light, bright, sunny, sunlight, menawar, menawara, mnwr, منور, منورة, اضاءة طبيعية,
+    شمس, مشمس, اضاءه]
+  soft:view: [view, nice view, open view, views, landscape view, garden view, feeh view, فيو, اطلالة, اطلاله,
+    فيو مفتوح, فيو لاندسكيب]
+  soft:privacy: [privacy, private, secluded, khososeya, خصوصية, خصوصيه]
+  soft:open_kitchen: [open kitchen, american kitchen, matba5 maftoo7, مطبخ مفتوح, مطبخ امريكي, مطبخ أمريكاني]
+  soft:smart_home: [smart home, smart-home, home automation, smart, سمارت هوم, سمارت]
+  soft:pets: [pets, pet friendly, pet-friendly, dogs, dog, cats, kalb, كلب, كلاب, قطط, حيوانات اليفة]
+  soft:corner: [corner, corner unit, nasya, nasia, ناصية, ناصيه, كورنر]
+  soft:high_floor: [high floor, top floor, upper floor, dor 3aly, dor 3aaly, دور عالي, دور عالى, ادوار عالية]
+  soft:ground_floor: [ground floor, ground, ardy, ardi, dor ardy, ارضي, أرضي, دور ارضي, الدور الارضي]
+  soft:investment: [investment, invest, rental, rent, rental income, roi, resale, este4mar, estethmar, estesmar,
+     igar, eigar, استثمار, للاستثمار, ايجار, للايجار, عائد, اعادة بيع]
+  soft:walkable: [walkable, walking, walk to, walk, mashy, ma4y, مشي, ع المشي, مسافة مشي]
+  soft:metro: [monorail, metro, lrt, train, station, monoreil, مونوريل, مترو, محطة, القطار الكهربائي]
+  soft:green: [green, greenery, landscape, green spaces, parks, park, khodra, خضرة, مساحات خضراء, لاندسكيب, حدائق]
+  soft:modern: [modern, contemporary, new design, 7adis, حديث, مودرن]
+  soft:storage: [storage, storage room, kitchen storage, makhzan, مخزن, غرفة تخزين]
+  soft:sunset: [sunset, sunset view, ghoroob, ghroub, غروب, الغروب]
+
+# Words that carry no search meaning (in any script). Used for unknown-term detection.
+stopwords: [i, im, i'm, me, my, we, our, us, want, need, looking, look, for, a, an, the, with, and, or, please, pls,
+  show, find, get, give, any, some, something, unit, units, property, properties, home, house, place, is, are, it,
+  that, this, can, you, do, have, has, of, on, also, only, just, but, not, no, yes, ok, okay, hi, hello, thanks, would,
+  like, prefer, preferably, should, be, as, so, if, there, what, which, where, how, much, many, very, good, nice,
+  great, best, buy, buying, purchase, sale, sell, egypt, cairo, compound, compounds, plz, kindly, dear,
+  3ayez, 3ayz, 3aiz, 3awez, 3awz, 3ayza, 3ayzin, 3ayzeen, ana, e7na, ehna, mehtag, me7tag, 3andy, 3andi, 3and, mn,
+  el, al, b, bel, bi, be, w, we, wala, aw, ya, yb2a, yeb2a, ykoon, tkoon, yekon, tekon, feeh, fih, fiha, feha, mesh,
+  msh, momken, mumkin, law, sama7t, lw, abo, 7aga, haga, 7agat, wa7da, eh, ay, shwaya, kda, keda, bas, bs, gedan,
+  awi, awy, 2awy, fel, fl, fil, fe, fi, place, area, location, makan, mkan, dah, de, dol, ely, elly, lel, lil, lli, aslan, tab, tayeb,
+  عايز, عاوز, عايزه, عايزة, عاوزه, عاوزين, عايزين, انا, احنا, محتاج, محتاجين, عندي, عندنا, في, فيه, فيها, من, على,
+  علي, عن, مع, او, ولا, يا, يكون, تكون, يبقى, تبقى, مش, ممكن, لو, سمحت, حاجة, حاجه, اي, أي, شوية, كده, كدا, بس,
+  جدا, اوي, قوي, ده, دي, دول, اللي, الي, لل, ال, و, ب, هو, هي, ابحث, دور, دورلي, شوفلي, لقيلي, ابغى, ابي, أبي,
+  كمبوند, مكان, منطقة, منطقه, حته, وحدة, وحده, عقار, بيت, سكن, للسكن, شراء, اشتري, بيع, مصر, القاهرة, لي, ليا, لينا, وانا, عشان, علشان]

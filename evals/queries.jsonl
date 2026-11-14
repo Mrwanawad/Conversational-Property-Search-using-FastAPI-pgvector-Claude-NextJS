@@ -1,0 +1,32 @@
+{"id": "ar-01", "lang": "ar", "query": "3 غرف في التجمع تحت 8 مليون تقسيط 8 سنين", "filters": {"areas": ["new_cairo"], "bedrooms_min": 3, "bedrooms_max": 3, "budget_max": 8000000, "installment_years_min": 8}}
+{"id": "ar-02", "lang": "ar", "query": "شاليه في الساحل فيو بحر تحت 12 مليون", "filters": {"areas": ["north_coast"], "unit_types": ["chalet"], "budget_max": 12000000, "amenities": ["sea_view"]}}
+{"id": "ar-03", "lang": "ar", "query": "فيلا في أكتوبر استلام فوري", "filters": {"areas": ["october"], "unit_types": ["villa"], "ready_to_move": true}}
+{"id": "ar-04", "lang": "ar", "query": "شقة في الشيخ زايد بجنينة تحت 10 مليون", "filters": {"areas": ["sheikh_zayed"], "unit_types": ["apartment"], "amenities": ["garden"], "budget_max": 10000000}}
+{"id": "ar-05", "lang": "ar", "query": "دوبلكس في التجمع مقدم 10% استلام 2027", "filters": {"areas": ["new_cairo"], "unit_types": ["duplex"], "down_payment_max_pct": 10, "delivery_year_max": 2027}}
+{"id": "ar-06", "lang": "ar", "query": "تاون هاوس في القاهرة الجديدة من 10 لـ 15 مليون", "filters": {"areas": ["new_cairo"], "unit_types": ["townhouse"], "budget_min": 10000000, "budget_max": 15000000}}
+{"id": "ar-07", "lang": "ar", "query": "شقة غرفتين متشطبة في أكتوبر", "filters": {"areas": ["october"], "unit_types": ["apartment"], "bedrooms_min": 2, "bedrooms_max": 2, "finishing": ["fully_finished"]}}
+{"id": "ar-08", "lang": "ar", "query": "شقة قسطها الشهري أقل من 50 ألف في التجمع", "filters": {"areas": ["new_cairo"], "unit_types": ["apartment"], "monthly_installment_max": 50000}}
+{"id": "ar-09", "lang": "ar", "query": "بنتهاوس في التجمع فيها روف", "filters": {"areas": ["new_cairo"], "unit_types": ["penthouse"], "amenities": ["roof"]}}
+{"id": "ar-10", "lang": "ar", "query": "توين هاوس في زايد بحمام سباحة خاص", "filters": {"unit_types": ["twin_house"], "amenities": ["private_pool"]}, "expect_clarification": true}
+{"id": "fr-01", "lang": "franco", "query": "3ayez sha2a fel tagamo3 ta7t 7 mlyon w mo2adam 10%", "filters": {"areas": ["new_cairo"], "unit_types": ["apartment"], "budget_max": 7000000, "down_payment_max_pct": 10}}
+{"id": "fr-02", "lang": "franco", "query": "villa f october estelam fawry", "filters": {"areas": ["october"], "unit_types": ["villa"], "ready_to_move": true}}
+{"id": "fr-03", "lang": "franco", "query": "sha2a 3 ghoraf fel sa7el", "filters": {"areas": ["north_coast"], "unit_types": ["apartment"], "bedrooms_min": 3, "bedrooms_max": 3}}
+{"id": "fr-04", "lang": "franco", "query": "shale fel sa7el view ba7r", "filters": {"areas": ["north_coast"], "unit_types": ["chalet"], "amenities": ["sea_view"]}}
+{"id": "fr-05", "lang": "franco", "query": "townhouse fel tagamo3 ta2seet 10 snin", "filters": {"areas": ["new_cairo"], "unit_types": ["townhouse"], "installment_years_min": 10}}
+{"id": "fr-06", "lang": "franco", "query": "sha2a b genena fel sheikh zayed", "filters": {"areas": ["sheikh_zayed"], "unit_types": ["apartment"], "amenities": ["garden"]}}
+{"id": "fr-07", "lang": "franco", "query": "duplex ta7t 9 mlyon fel tagamo3", "filters": {"areas": ["new_cairo"], "unit_types": ["duplex"], "budget_max": 9000000}}
+{"id": "fr-08", "lang": "franco", "query": "villa fe zayed", "filters": {"unit_types": ["villa"]}, "expect_clarification": true}
+{"id": "en-01", "lang": "en", "query": "villa in Sheikh Zayed, ready to move, garden", "filters": {"areas": ["sheikh_zayed"], "unit_types": ["villa"], "ready_to_move": true, "amenities": ["garden"]}}
+{"id": "en-02", "lang": "en", "query": "apartment near AUC, monthly under 70k", "filters": {"unit_types": ["apartment"], "near_landmark": "auc", "monthly_installment_max": 70000}}
+{"id": "en-03", "lang": "en", "query": "twin house in October with a garden, delivery 2027", "filters": {"areas": ["october"], "unit_types": ["twin_house"], "amenities": ["garden"], "delivery_year_max": 2027}}
+{"id": "en-04", "lang": "en", "query": "3 bedroom apartment in New Cairo under 8 million", "filters": {"areas": ["new_cairo"], "unit_types": ["apartment"], "bedrooms_min": 3, "bedrooms_max": 3, "budget_max": 8000000}}
+{"id": "en-05", "lang": "en", "query": "chalet in the North Coast with sea view", "filters": {"areas": ["north_coast"], "unit_types": ["chalet"], "amenities": ["sea_view"]}}
+{"id": "en-06", "lang": "en", "query": "fully finished studio in October under 3 million", "filters": {"areas": ["october"], "unit_types": ["studio"], "finishing": ["fully_finished"], "budget_max": 3000000}}
+{"id": "en-07", "lang": "en", "query": "penthouse with a roof in New Cairo, 10% down payment", "filters": {"areas": ["new_cairo"], "unit_types": ["penthouse"], "amenities": ["roof"], "down_payment_max_pct": 10}}
+{"id": "en-08", "lang": "en", "query": "townhouse in New Cairo between 10 and 15 million", "filters": {"areas": ["new_cairo"], "unit_types": ["townhouse"], "budget_min": 10000000, "budget_max": 15000000}}
+{"id": "en-09", "lang": "en", "query": "villa with private pool in Sheikh Zayed, 8 years installments", "filters": {"areas": ["sheikh_zayed"], "unit_types": ["villa"], "amenities": ["private_pool"], "installment_years_min": 8}}
+{"id": "en-10", "lang": "en", "query": "something nice", "filters": {}, "expect_clarification": true}
+{"id": "mx-01", "lang": "mixed", "query": "apartment في التجمع under 6 million", "filters": {"areas": ["new_cairo"], "unit_types": ["apartment"], "budget_max": 6000000}}
+{"id": "mx-02", "lang": "mixed", "query": "villa في الشيخ زايد ready to move", "filters": {"areas": ["sheikh_zayed"], "unit_types": ["villa"], "ready_to_move": true}}
+{"id": "mx-03", "lang": "mixed", "query": "شاليه in North Coast sea view", "filters": {"areas": ["north_coast"], "unit_types": ["chalet"], "amenities": ["sea_view"]}}
+{"id": "mx-04", "lang": "mixed", "query": "3 غرف apartment october", "filters": {"areas": ["october"], "unit_types": ["apartment"], "bedrooms_min": 3, "bedrooms_max": 3}}

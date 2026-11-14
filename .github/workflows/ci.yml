@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.0-pg17
+        env:
+          POSTGRES_USER: propsearch
+          POSTGRES_PASSWORD: propsearch
+          POSTGRES_DB: propsearch
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U propsearch" --health-interval 3s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://propsearch:propsearch@localhost:5432/propsearch
+      DATABASE_URL: postgresql+psycopg://propsearch:propsearch@localhost:5432/propsearch
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv pip install --system -e ".[dev]"
+      - run: ruff check src tests scripts
+      - run: ruff format --check src tests scripts
+      - run: pytest -q
+      - name: Eval gate (filter extraction exact match >= 0.9)
+        run: python scripts/eval.py --min-exact 0.9
