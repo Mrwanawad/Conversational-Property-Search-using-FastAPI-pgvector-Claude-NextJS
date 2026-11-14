@@ -122,3 +122,14 @@ def test_claude_parser_falls_back_to_rules(settings, Session):
     r = eng.turn("3 غرف في التجمع تحت 8 مليون")
     assert r.parsed.parser == "rules_fallback"
     assert r.parsed.filters.areas == ["new_cairo"] and r.units
+
+
+def test_relaxed_budget_reason_compares_with_the_asked_budget(engine):
+    # Found during a browser pilot: after a +10% relaxation, a unit above the user's budget was
+    # described as "under your budget" because the reason used the relaxed number.
+    r = engine.turn("3ayez chalet fel sa7el 3ala el ba7r, 2 owad, ta7t 10 mlyon")
+    asked = r.parsed.filters.budget_max
+    over = [h for h in r.units if h.price > asked]
+    for h in over:
+        assert any(x.kind == "relaxed" and "over your" in x.en for x in h.reasons)
+        assert not any("under your" in x.en for x in h.reasons)

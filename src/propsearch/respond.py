@@ -77,9 +77,15 @@ def evidence_sentence(unit: Unit, soft: str, lang: str, scorer) -> str | None:
 
 
 def reasons_for(
-    unit: Unit, s: Scored, pq: ParsedQuery, plan: PlanSummary | None, evidence: str | None
+    unit: Unit,
+    s: Scored,
+    pq: ParsedQuery,
+    plan: PlanSummary | None,
+    evidence: str | None,
+    asked: SearchFilters | None = None,
 ) -> list[Reason]:
     f = pq.filters
+    asked = asked or f  # what the user asked for, before any relaxation
     out: list[Reason] = []
     if f.areas or f.compounds:
         out.append(
@@ -91,12 +97,22 @@ def reasons_for(
         )
     if f.bedrooms_min is not None or f.bedrooms_max is not None:
         out.append(Reason(kind="match", en=f"{unit.bedrooms} bedrooms", ar=f"{unit.bedrooms} غرف"))
-    if f.budget_max:
-        gap = f.budget_max - unit.price
+    if asked.budget_max and unit.price > asked.budget_max:
+        over = unit.price - asked.budget_max
+        out.append(
+            Reason(
+                kind="relaxed",
+                en=f"{egp(unit.price)}, {egp(over)} over your {egp(asked.budget_max)} budget",
+                ar=f"{egp(unit.price, 'ar')}، أعلى من ميزانيتك بـ {egp(over, 'ar')}",
+            )
+        )
+    elif f.budget_max:
+        gap = asked.budget_max - unit.price if asked.budget_max else f.budget_max - unit.price
+        budget = asked.budget_max or f.budget_max
         en = (
-            f"{egp(unit.price)}, {egp(gap)} under your {egp(f.budget_max)} budget"
+            f"{egp(unit.price)}, {egp(gap)} under your {egp(budget)} budget"
             if gap >= 10_000
-            else f"{egp(unit.price)}, at your {egp(f.budget_max)} budget"
+            else f"{egp(unit.price)}, at your {egp(budget)} budget"
         )
         ar = (
             f"{egp(unit.price, 'ar')}، أقل من ميزانيتك بـ {egp(gap, 'ar')}"
@@ -168,7 +184,9 @@ def reasons_for(
     return out
 
 
-def to_hit(unit: Unit, s: Scored, pq: ParsedQuery, lang: str, scorer) -> UnitHit:
+def to_hit(
+    unit: Unit, s: Scored, pq: ParsedQuery, lang: str, scorer, asked: SearchFilters | None = None
+) -> UnitHit:
     plan = best_plan(unit, pq.filters)
     evidence = evidence_sentence(unit, pq.soft_preferences, lang, scorer)
     te, ta = type_name(unit.unit_type), type_name(unit.unit_type, "ar")
@@ -200,7 +218,7 @@ def to_hit(unit: Unit, s: Scored, pq: ParsedQuery, lang: str, scorer) -> UnitHit
         best_plan=plan,
         distance_km=s.distance_km,
         score=s.score,
-        reasons=reasons_for(unit, s, pq, plan, evidence),
+        reasons=reasons_for(unit, s, pq, plan, evidence, asked),
         description_en=unit.description_en,
         description_ar=unit.description_ar,
     )

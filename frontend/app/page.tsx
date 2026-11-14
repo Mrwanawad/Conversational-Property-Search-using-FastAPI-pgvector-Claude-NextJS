@@ -9,6 +9,15 @@ type Msg = { role: "user"; text: string } | { role: "assistant"; turn: SearchTur
 
 const isArabic = (s: string) => /[؀-ۿ]/.test(s);
 
+// Shown until /api/meta answers, so the first screen is never empty.
+const FALLBACK_EXAMPLES = [
+  "3 غرف في التجمع تحت 8 مليون تقسيط 8 سنين",
+  "villa in Zayed, ready to move, garden",
+  "3ayez sha2a fel tagamo3 ta7t 7 mlyon w mo2adam 10%",
+  "apartment near AUC, quiet, good for families, monthly under 70k",
+];
+const NEW_SEARCH = new Set(["new search", "بحث جديد"]);
+
 export default function Home() {
   const [meta, setMeta] = useState<Meta | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -21,7 +30,20 @@ export default function Home() {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api.meta().then(setMeta).catch(() => null);
+    // A cold serverless start can fail the first call; retry a few times before giving up.
+    let cancelled = false;
+    const load = async (attempt: number) => {
+      try {
+        const m = await api.meta();
+        if (!cancelled) setMeta(m);
+      } catch {
+        if (!cancelled && attempt < 4) setTimeout(() => load(attempt + 1), 1500 * (attempt + 1));
+      }
+    };
+    load(0);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -104,7 +126,7 @@ export default function Home() {
               <span dir="rtl">اكتب اللي بتدور عليه زي ما بتتكلم.</span>
             </p>
             <div className="examples">
-              {(meta?.examples ?? []).map((ex) => (
+              {(meta?.examples ?? FALLBACK_EXAMPLES).map((ex) => (
                 <button key={ex} type="button" className="example" dir="auto" onClick={() => send(ex)}>
                   {ex}
                 </button>
@@ -172,7 +194,7 @@ export default function Home() {
                       type="button"
                       className="chip"
                       disabled={!last || busy}
-                      onClick={() => send(o.value)}
+                      onClick={() => send(en ? o.value : o.label_ar)}
                     >
                       {en ? o.label_en : o.label_ar}
                     </button>
@@ -198,7 +220,7 @@ export default function Home() {
               {last && t.suggestions.length > 0 && (
                 <div className="chips" data-testid="suggestions">
                   {t.suggestions.map((s) => (
-                    <button key={s.value} type="button" className="chip" disabled={busy} onClick={() => send(s.value)}>
+                    <button key={s.value} type="button" className="chip" disabled={busy} onClick={() => (NEW_SEARCH.has(s.value) ? reset() : send(s.value))}>
                       {s.label}
                     </button>
                   ))}

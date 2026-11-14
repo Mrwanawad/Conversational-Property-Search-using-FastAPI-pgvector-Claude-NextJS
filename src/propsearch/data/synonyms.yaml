@@ -162,6 +162,10 @@ refinements:
     ارخص حاجة, ارخص حاجه, الارخص, ارخص وحدة, اقل الاسعار]
   reset: [new search, start over, reset, from scratch, men el awel, mn el awel, nebda2 men gedid,
     بحث جديد, من الاول, من الأول, ابدا من جديد, نبدا من جديد]
+  # drops the next amenity / ready-to-move in the same message ("mesh lazem 3al ba7r" = beach not required)
+  neg: [not necessarily, doesn't have to, does not have to, doesnt have to, don't need, dont need, do not need,
+    no need for, not required, without, mesh lazem, msh lazem, mosh lazem, mesh shart, msh shart, mesh darory,
+    men gher, mn gher, bdon, bedoon, مش لازم, مش شرط, مش ضروري, مش ضروري يكون, من غير, بدون]
 
 soft:
   soft:quiet: [quiet, calm, peaceful, silent, hady, hadi, hadya, hadia, hedoo2, هادي, هادئ, هادية, هاديه, هدوء,

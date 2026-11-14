@@ -182,7 +182,7 @@ class SearchEngine:
                 }
                 scorer = self._scorer() if pq.soft_preferences else None
                 eff = pq.model_copy(update={"filters": relaxed}) if relaxations else pq
-                hits = [to_hit(units[s.unit_id], s, eff, lang, scorer) for s in page]
+                hits = [to_hit(units[s.unit_id], s, eff, lang, scorer, pq.filters) for s in page]
                 timings["respond"] = (time.perf_counter() - t) * 1000
 
             input_tokens = getattr(getattr(self.parser, "last_usage", None), "input_tokens", 0) or 0

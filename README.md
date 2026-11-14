@@ -67,6 +67,29 @@ Notes:
 - Rules-only turn latency is 9 ms p50 / 12 ms p95 (hashing embedder, no reranker, laptop). Zero-result rate after relaxation is 0.031 on dev: a villa under 2M has no match at any relaxation, so the reply gives the price floor.
 - When an LLM call fails (rate limit, timeout, invalid tool arguments), that turn uses the rule parser. Search never goes down because of a model.
 
+### Ranking quality from clicks (annotator pilot)
+
+`scripts/click_metrics.py` turns logged events into graded labels (inquiry = 2, Details click = 1) over the ranked list each turn showed (`query_log.top_unit_ids`), then reports NDCG@10, MRR and engagement rates. Only shown units can be judged, so recall needs a separate labelled pool.
+
+**There is no real user traffic yet.** To exercise the loop end to end, one annotator (Claude, driving Chrome on the live site) ran 7 sessions as different buyers: a family in New Cairo, an investor in the New Capital, a Franco-Arabic chalet buyer, a villa buyer who had to pick between the two Zayeds, a quiet-apartment seeker near AUC, a first-time buyer on a tight budget, and a townhouse buyer. Each one opened the units that fit their request and inquired on the best one. These are one judge's labels, not market behaviour (`evals/results/clicks-annotator-pilot.json`).
+
+| Metric | Value |
+|---|---|
+| Ranked turns / turns with interaction | 11 / 9 |
+| NDCG@10 | 0.75 |
+| MRR | 0.64 |
+| Abandonment | 18% |
+| Turns ending in an inquiry | 82% |
+
+The weakest turns (NDCG about 0.52) were soft wishes: "big garden" ranked 90 m² gardens above 500 m² ones, and "quiet" ranked pet-friendly units first. That is the hashing embedder the free deployment uses. bge-m3 plus the cross-encoder is the fix, and these turns are the before/after test for it.
+
+The pilot also found five bugs, all fixed with regression tests where they apply:
+- After a +10% budget relaxation, a unit above the user's budget was described as "under your budget". The reason now compares with the budget the user asked for and says "over your budget".
+- "mesh lazem 3al ba7r" (doesn't have to be on the beach) added the beach constraint when the LLM call was rate-limited. The rules now understand removal ("mesh lazem", "not necessarily", "without", "مش لازم", "بدون").
+- Picking an area in a clarification switched an Arabic conversation to English. The chip now sends the Arabic name.
+- "New search" ran an empty search (1,410 units) instead of starting over. It now resets the chat.
+- The example chips were missing on a cold start because the first `/api/meta` call failed. The page now retries and shows built-in examples meanwhile.
+
 ## Run it
 
 You need Python 3.11+ and Postgres with pgvector.
@@ -186,7 +209,8 @@ All inventory is synthetic (`data/generate.py`, fixed seed). Developer, compound
 
 ## Not built yet
 
-- Scored Claude parser run (built and tested for fallback; no Anthropic API key) and a bge-m3 / reranker retrieval comparison (NDCG@10, recall@20, MRR). The click and inquiry events the UI logs are the intended source of those relevance labels.
+- Scored Claude parser run (built and tested for fallback; no Anthropic API key).
+- Ranking metrics on real traffic and a bge-m3 / reranker comparison. `scripts/click_metrics.py` is ready; it needs real users instead of the annotator pilot above.
 - The live demo runs the hashing embedder and no reranker to fit a serverless function. bge-m3 and the cross-encoder need a bigger box.
 
 ## License

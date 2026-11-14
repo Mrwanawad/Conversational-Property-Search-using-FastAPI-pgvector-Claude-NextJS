@@ -88,3 +88,15 @@ def test_unknown_area_is_rejected_by_schema():
 def test_parsed_query_round_trips_json():
     pq = P.parse("twin house in October with a garden, delivery 2027")
     assert ParsedQuery.model_validate(pq.model_dump(mode="json")) == pq
+
+
+def test_negation_removes_instead_of_adding():
+    r = RuleParser()
+    first = r.parse("3ayez chalet fel sa7el 3ala el ba7r, 2 owad, ta7t 10 mlyon")
+    assert "beach_access" in first.filters.amenities
+    franco = r.parse("mesh lazem 3al ba7r, view ba7r kfaya", first)
+    assert franco.filters.amenities == ["sea_view"]
+    english = r.parse("not necessarily on the beach", first)
+    assert english.filters.amenities == []
+    ready = r.parse("ستوديو في أكتوبر استلام فوري تحت 3 مليون")
+    assert r.parse("مش لازم استلام فوري", ready).filters.ready_to_move is None

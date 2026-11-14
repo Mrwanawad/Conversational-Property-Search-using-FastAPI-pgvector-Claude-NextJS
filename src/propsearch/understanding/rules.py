@@ -191,11 +191,29 @@ def parse_turn(tq: TaggedQuery) -> tuple[SearchFilters, list[str], dict]:
     """Extract this turn's own constraints (no session merge). Returns filters, soft concepts, flags."""
     atoms = _atoms(tq)
     f: dict = {"areas": [], "unit_types": [], "finishing": [], "amenities": []}
-    flags: dict = {"refine": set(), "reset": False, "ambiguous_zayed": False, "sort": None}
+    flags: dict = {
+        "refine": set(),
+        "reset": False,
+        "ambiguous_zayed": False,
+        "sort": None,
+        "drop_amenities": set(),
+        "drop_ready": False,
+    }
     soft: list[str] = []
 
     concepts = [str(a.value) for a in atoms if a.kind == "c"]
+    negated = -1  # index of the last negation cue; it applies to the next amenity / ready concept
     for i, c in enumerate(concepts):
+        if c == "neg":
+            negated = i
+            continue
+        if negated >= 0 and i - negated <= 3 and (c.startswith("amenity:") or c == "ready"):
+            negated = -1
+            if c == "ready":
+                flags["drop_ready"] = True
+            else:
+                flags["drop_amenities"].add(c.split(":", 1)[1])
+            continue
         if c.startswith("area:"):
             f["areas"].append(c.split(":", 1)[1])
         elif c.startswith("group:"):
@@ -373,6 +391,11 @@ def merge_turn(
     # amenities accumulate across refinements ("and with a garden")
     if prev and not is_new_search and turn.amenities:
         base["amenities"] = sorted(set(prev.filters.amenities) | set(turn.amenities))
+    # "not necessarily on the beach" / "مش لازم استلام فوري" removes a constraint instead of adding it
+    if flags["drop_amenities"]:
+        base["amenities"] = sorted(set(base["amenities"]) - flags["drop_amenities"])
+    if flags["drop_ready"]:
+        base["ready_to_move"] = None
 
     ref_price = context.get("median_price")
     ref_bua = context.get("median_bua")
