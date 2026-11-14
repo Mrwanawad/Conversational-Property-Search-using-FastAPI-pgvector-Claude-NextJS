@@ -68,6 +68,19 @@ class SearchEngine:
             self.parser = ClaudeParser(
                 self.client, settings.anthropic_model, comps, settings.anthropic_effort, self.rules
             )
+        elif settings.parser == "llm":
+            from propsearch.understanding.llm import GatedParser, OpenAICompatParser
+
+            llm = OpenAICompatParser(
+                settings.llm_base_url,
+                settings.llm_api_key,
+                settings.llm_model,
+                comps,
+                settings.llm_reasoning_effort,
+                settings.llm_timeout_s,
+                self.rules,
+            )
+            self.parser = GatedParser(self.rules, llm) if settings.llm_mode == "on_unknown" else llm
         else:
             self.parser = self.rules
 
@@ -103,7 +116,7 @@ class SearchEngine:
             t = time.perf_counter()
             with telemetry.observe(
                 "understand",
-                as_type="generation" if self.settings.parser == "anthropic" else "span",
+                as_type="span" if self.settings.parser == "rules" else "generation",
                 input=message,
             ) as obs:
                 pq = self.parser.parse(message, previous, context)
@@ -175,7 +188,7 @@ class SearchEngine:
             input_tokens = getattr(getattr(self.parser, "last_usage", None), "input_tokens", 0) or 0
             output_tokens = getattr(getattr(self.parser, "last_usage", None), "output_tokens", 0) or 0
             cost = getattr(getattr(self.parser, "last_usage", None), "cost_usd", 0.0) or 0.0
-            if self.settings.parser != "anthropic":
+            if self.settings.parser == "rules":
                 input_tokens = output_tokens = 0
                 cost = 0.0
 

@@ -1,0 +1,91 @@
+{
+  "parser": "llm",
+  "queries": 24,
+  "exact_match": 0.917,
+  "exact_match_by_language": {
+    "ar": 1.0,
+    "en": 0.778,
+    "franco": 1.0,
+    "mixed": 1.0
+  },
+  "micro_f1": {
+    "precision": 0.988,
+    "recall": 0.975,
+    "f1": 0.981
+  },
+  "per_field_f1": {
+    "amenities": 1.0,
+    "areas": 0.977,
+    "bedrooms_max": 0.889,
+    "bedrooms_min": 0.889,
+    "budget_max": 1.0,
+    "delivery_year_max": 1.0,
+    "down_payment_max_amount": 1.0,
+    "down_payment_max_pct": 1.0,
+    "finishing": 1.0,
+    "installment_years_min": 1.0,
+    "monthly_installment_max": 1.0,
+    "near_landmark": 1.0,
+    "ready_to_move": 1.0,
+    "unit_types": 1.0
+  },
+  "clarification_accuracy": 1.0,
+  "zero_result_rate": 0.083,
+  "latency_ms": {
+    "p50": 29884.6,
+    "p95": 30201.0
+  },
+  "misses": [
+    {
+      "id": "h-en-01",
+      "query": "two-bed flat in the Fifth Settlement, max 6M",
+      "gold": {
+        "areas": [
+          "new_cairo"
+        ],
+        "unit_types": [
+          "apartment"
+        ],
+        "bedrooms_min": 2,
+        "bedrooms_max": 2,
+        "budget_max": 6000000
+      },
+      "pred": {
+        "areas": [
+          "new_cairo"
+        ],
+        "unit_types": [
+          "apartment"
+        ],
+        "budget_max": 6000000
+      }
+    },
+    {
+      "id": "h-en-09",
+      "query": "3 bedroom place near Smart Village, nothing above 9M",
+      "gold": {
+        "bedrooms_min": 3,
+        "bedrooms_max": 3,
+        "near_landmark": "smart_village",
+        "budget_max": 9000000
+      },
+      "pred": {
+        "areas": [
+          "new_cairo"
+        ],
+        "bedrooms_min": 3,
+        "bedrooms_max": 3,
+        "budget_max": 9000000,
+        "near_landmark": "smart_village",
+        "max_distance_km": 12.0
+      }
+    }
+  ],
+  "model": "qwen/qwen3.8-27b",
+  "fallback_rate": 0.458,
+  "llm_latency_ms": {
+    "p50": 1385.7,
+    "p95": 12026.9
+  },
+  "cost_per_query_usd": 0.0
+}

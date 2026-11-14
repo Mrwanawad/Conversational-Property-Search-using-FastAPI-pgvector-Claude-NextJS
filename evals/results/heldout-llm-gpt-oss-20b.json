@@ -1,0 +1,140 @@
+{
+  "parser": "llm",
+  "queries": 24,
+  "exact_match": 0.833,
+  "exact_match_by_language": {
+    "ar": 1.0,
+    "en": 0.667,
+    "franco": 0.8,
+    "mixed": 1.0
+  },
+  "micro_f1": {
+    "precision": 0.975,
+    "recall": 0.951,
+    "f1": 0.963
+  },
+  "per_field_f1": {
+    "amenities": 0.727,
+    "areas": 1.0,
+    "bedrooms_max": 1.0,
+    "bedrooms_min": 1.0,
+    "budget_max": 1.0,
+    "compounds": 0.0,
+    "delivery_year_max": 1.0,
+    "down_payment_max_amount": 1.0,
+    "down_payment_max_pct": 1.0,
+    "finishing": 1.0,
+    "installment_years_min": 1.0,
+    "monthly_installment_max": 1.0,
+    "near_landmark": 1.0,
+    "ready_to_move": 0.8,
+    "unit_types": 0.976
+  },
+  "clarification_accuracy": 1.0,
+  "zero_result_rate": 0.042,
+  "latency_ms": {
+    "p50": 23662.4,
+    "p95": 24475.1
+  },
+  "misses": [
+    {
+      "id": "h-en-02",
+      "query": "standalone villa in 6 October, keys now, budget 25 million tops",
+      "gold": {
+        "areas": [
+          "october"
+        ],
+        "unit_types": [
+          "villa"
+        ],
+        "ready_to_move": true,
+        "budget_max": 25000000
+      },
+      "pred": {
+        "areas": [
+          "october"
+        ],
+        "unit_types": [
+          "villa"
+        ],
+        "budget_max": 25000000
+      }
+    },
+    {
+      "id": "h-en-04",
+      "query": "chalet on the Sahel facing the sea, under twelve million",
+      "gold": {
+        "areas": [
+          "north_coast"
+        ],
+        "unit_types": [
+          "chalet"
+        ],
+        "amenities": [
+          "sea_view"
+        ],
+        "budget_max": 12000000
+      },
+      "pred": {
+        "areas": [
+          "north_coast"
+        ],
+        "unit_types": [
+          "chalet"
+        ],
+        "budget_max": 12000000
+      }
+    },
+    {
+      "id": "h-en-06",
+      "query": "something in Sokhna with a pool of its own",
+      "gold": {
+        "areas": [
+          "ain_sokhna"
+        ],
+        "amenities": [
+          "private_pool"
+        ]
+      },
+      "pred": {
+        "areas": [
+          "ain_sokhna"
+        ],
+        "amenities": [
+          "swimming_pool"
+        ]
+      }
+    },
+    {
+      "id": "h-fr-02",
+      "query": "sha2a odten fel tagamo3 el khames",
+      "gold": {
+        "areas": [
+          "new_cairo"
+        ],
+        "unit_types": [
+          "apartment"
+        ],
+        "bedrooms_min": 2,
+        "bedrooms_max": 2
+      },
+      "pred": {
+        "areas": [
+          "new_cairo"
+        ],
+        "compounds": [
+          "saffron_courts"
+        ],
+        "bedrooms_min": 2,
+        "bedrooms_max": 2
+      }
+    }
+  ],
+  "model": "openai/gpt-oss-20b",
+  "fallback_rate": 0.042,
+  "llm_latency_ms": {
+    "p50": 995.5,
+    "p95": 1382.5
+  },
+  "cost_per_query_usd": 0.000275
+}

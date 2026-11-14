@@ -13,12 +13,20 @@ class Settings(BaseSettings):
     app_env: Literal["dev", "test", "prod"] = "dev"
     database_url: str = "postgresql+psycopg://propsearch:propsearch@localhost:5433/propsearch"
 
-    # Query understanding: "anthropic" uses Claude tool calling and falls back to rules on any failure.
-    parser: Literal["anthropic", "rules"] = "rules"
+    # Query understanding: "anthropic" (Claude tool calling) or "llm" (any OpenAI-compatible API: Groq,
+    # OpenRouter, ...). Both fall back to rules on any failure.
+    parser: Literal["anthropic", "llm", "rules"] = "rules"
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-opus-5-5"
     anthropic_effort: Literal["low", "medium", "high"] = "low"
     anthropic_timeout_s: float = 20.0
+    llm_base_url: str = "https://api.groq.com/openai/v1"
+    llm_api_key: str = ""
+    llm_model: str = "openai/gpt-oss-120b"
+    llm_reasoning_effort: str = "low"  # empty string to omit (models without reasoning controls)
+    llm_timeout_s: float = 15.0
+    # "on_unknown": rules first, LLM only when the rules hit unknown terms. "always": LLM on every turn.
+    llm_mode: Literal["on_unknown", "always"] = "on_unknown"
     # Optional grounded narrative for the reply (numbers checked against DB fields). Off = templates only.
     llm_summary: bool = False
 

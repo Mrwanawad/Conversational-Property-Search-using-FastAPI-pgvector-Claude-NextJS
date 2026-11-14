@@ -2,6 +2,8 @@
 
     python scripts/eval.py                         # rules parser, embedded Postgres (pgserver)
     python scripts/eval.py --parser anthropic      # Claude parser (needs ANTHROPIC_API_KEY)
+    python scripts/eval.py --parser llm --model openai/gpt-oss-120b   # Groq / OpenRouter (LLM_API_KEY)
+    python scripts/eval.py --queries evals/heldout.jsonl               # held-out phrasings
     DATABASE_URL=postgresql+psycopg://... python scripts/eval.py
 
 Metrics:
@@ -9,7 +11,7 @@ Metrics:
 - clarification: asked when expected, not asked otherwise
 - zero-result rate (after relaxation) and latency p50 / p95 of the whole turn
 
-Writes evals/results/<parser>.json and prints a summary. Exits 1 if exact match falls under --min-exact.
+Writes evals/results/<set>-<parser>[-<model>].json and prints a summary. Exits 1 if exact match falls under --min-exact.
 """
 
 from __future__ import annotations
@@ -63,22 +65,37 @@ def database_url() -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--parser", choices=["rules", "anthropic"], default="rules")
+    ap.add_argument("--parser", choices=["rules", "anthropic", "llm"], default="rules")
+    ap.add_argument("--model", default=None, help="LLM model id (overrides LLM_MODEL / ANTHROPIC_MODEL)")
+    ap.add_argument("--reasoning-effort", default=None, help="for --parser llm; '' to omit")
+    ap.add_argument("--queries", default="evals/queries.jsonl")
+    ap.add_argument("--llm-mode", choices=["always", "on_unknown"], default="always")
     ap.add_argument("--min-exact", type=float, default=0.0)
     args = ap.parse_args()
 
     url = database_url()
     engine = get_engine(url)
     ensure_seeded(engine, "hashing")
-    settings = Settings(database_url=url, parser=args.parser, embedder="hashing", reranker="none")
+    overrides = {}
+    if args.model:
+        overrides["llm_model" if args.parser == "llm" else "anthropic_model"] = args.model
+    if args.reasoning_effort is not None:
+        overrides["llm_reasoning_effort"] = args.reasoning_effort
+    overrides["llm_mode"] = args.llm_mode
+    settings = Settings(
+        database_url=url, parser=args.parser, embedder="hashing", reranker="none", **overrides
+    )
     search = SearchEngine(settings, session_factory(engine))
+    if args.parser == "llm":
+        getattr(
+            search.parser, "llm", search.parser
+        ).max_wait_s = 300  # free tiers rate-limit; an eval should measure the model, not the quota
 
-    items = [
-        json.loads(line) for line in (ROOT / "evals/queries.jsonl").read_text(encoding="utf-8").splitlines()
-    ]
+    items = [json.loads(line) for line in (ROOT / args.queries).read_text(encoding="utf-8").splitlines()]
     totals: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0])
     by_lang: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     rows, latencies, zero, clar_ok, misses = [], [], 0, 0, []
+    llm_ms, cost = [], 0.0
     for it in items:
         r = search.turn(it["query"], simulated=True)
         pred = r.parsed.filters.model_dump(mode="json", exclude_defaults=True)
@@ -94,6 +111,11 @@ def main() -> int:
         clar_ok += asked == bool(it.get("expect_clarification"))
         zero += (not asked) and r.total_matches == 0
         latencies.append(r.timings_ms["total"])
+        usage = getattr(search.parser, "last_usage", None)
+        if args.parser != "rules" and usage is not None:
+            if usage.model:
+                llm_ms.append(usage.latency_ms)
+            cost += usage.cost_usd
         if not exact:
             misses.append({"id": it["id"], "query": it["query"], "gold": it["filters"], "pred": pred})
         rows.append(
@@ -127,7 +149,25 @@ def main() -> int:
         "latency_ms": {"p50": round(statistics.median(lat), 1), "p95": round(lat[int(0.95 * (n - 1))], 1)},
         "misses": misses,
     }
-    dest = ROOT / "evals/results" / f"{args.parser}.json"
+    if args.parser != "rules":
+        out["model"] = search.parser.model
+        out["fallback_rate"] = round(sum(r["parser"] == "rules_fallback" for r in rows) / n, 3)
+        out["llm_mode"] = args.llm_mode if args.parser == "llm" else None
+        out["llm_calls"] = len(llm_ms)
+        out["llm_latency_ms"] = (
+            {
+                "p50": round(statistics.median(llm_ms), 1),
+                "p95": round(sorted(llm_ms)[int(0.95 * (len(llm_ms) - 1))], 1),
+            }
+            if llm_ms
+            else None
+        )
+        out["cost_per_query_usd"] = round(cost / n, 6)
+    set_name = Path(args.queries).stem
+    model_tag = f"-{search.parser.model.split('/')[-1]}" if args.parser != "rules" else ""
+    if args.parser == "llm" and args.llm_mode == "on_unknown":
+        model_tag += "-gated"
+    dest = ROOT / "evals/results" / f"{set_name}-{args.parser}{model_tag}.json"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     summary = {k: v for k, v in out.items() if k not in ("misses", "per_field_f1")}

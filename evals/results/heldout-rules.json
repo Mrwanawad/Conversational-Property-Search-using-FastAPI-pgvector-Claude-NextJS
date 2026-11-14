@@ -1,0 +1,200 @@
+{
+  "parser": "rules",
+  "queries": 24,
+  "exact_match": 0.708,
+  "exact_match_by_language": {
+    "ar": 1.0,
+    "en": 0.222,
+    "franco": 1.0,
+    "mixed": 1.0
+  },
+  "micro_f1": {
+    "precision": 0.948,
+    "recall": 0.901,
+    "f1": 0.924
+  },
+  "per_field_f1": {
+    "amenities": 0.667,
+    "areas": 1.0,
+    "bedrooms_max": 0.889,
+    "bedrooms_min": 0.889,
+    "budget_max": 0.857,
+    "budget_min": 0.0,
+    "delivery_year_max": 1.0,
+    "down_payment_max_amount": 1.0,
+    "down_payment_max_pct": 0.0,
+    "finishing": 1.0,
+    "installment_years_min": 1.0,
+    "monthly_installment_max": 0.0,
+    "near_landmark": 1.0,
+    "ready_to_move": 0.8,
+    "unit_types": 1.0
+  },
+  "clarification_accuracy": 1.0,
+  "zero_result_rate": 0.083,
+  "latency_ms": {
+    "p50": 26.4,
+    "p95": 37.0
+  },
+  "misses": [
+    {
+      "id": "h-en-01",
+      "query": "two-bed flat in the Fifth Settlement, max 6M",
+      "gold": {
+        "areas": [
+          "new_cairo"
+        ],
+        "unit_types": [
+          "apartment"
+        ],
+        "bedrooms_min": 2,
+        "bedrooms_max": 2,
+        "budget_max": 6000000
+      },
+      "pred": {
+        "areas": [
+          "new_cairo"
+        ],
+        "unit_types": [
+          "apartment"
+        ],
+        "budget_max": 6000000
+      }
+    },
+    {
+      "id": "h-en-02",
+      "query": "standalone villa in 6 October, keys now, budget 25 million tops",
+      "gold": {
+        "areas": [
+          "october"
+        ],
+        "unit_types": [
+          "villa"
+        ],
+        "ready_to_move": true,
+        "budget_max": 25000000
+      },
+      "pred": {
+        "areas": [
+          "october"
+        ],
+        "unit_types": [
+          "villa"
+        ],
+        "budget_max": 25000000
+      }
+    },
+    {
+      "id": "h-en-04",
+      "query": "beach chalet on the Sahel facing the sea, under twelve million",
+      "gold": {
+        "areas": [
+          "north_coast"
+        ],
+        "unit_types": [
+          "chalet"
+        ],
+        "amenities": [
+          "sea_view"
+        ],
+        "budget_max": 12000000
+      },
+      "pred": {
+        "areas": [
+          "north_coast"
+        ],
+        "unit_types": [
+          "chalet"
+        ],
+        "budget_max": 12000000,
+        "amenities": [
+          "beach_access"
+        ]
+      }
+    },
+    {
+      "id": "h-en-05",
+      "query": "semi finished 3BR in Mostakbal, no more than 15% upfront",
+      "gold": {
+        "areas": [
+          "mostakbal_city"
+        ],
+        "bedrooms_min": 3,
+        "bedrooms_max": 3,
+        "finishing": [
+          "semi_finished"
+        ],
+        "down_payment_max_pct": 15
+      },
+      "pred": {
+        "areas": [
+          "mostakbal_city"
+        ],
+        "bedrooms_min": 3,
+        "bedrooms_max": 3,
+        "finishing": [
+          "semi_finished"
+        ]
+      }
+    },
+    {
+      "id": "h-en-06",
+      "query": "something in Sokhna with a pool of its own",
+      "gold": {
+        "areas": [
+          "ain_sokhna"
+        ],
+        "amenities": [
+          "private_pool"
+        ]
+      },
+      "pred": {
+        "areas": [
+          "ain_sokhna"
+        ],
+        "amenities": [
+          "swimming_pool"
+        ]
+      }
+    },
+    {
+      "id": "h-en-08",
+      "query": "duplex in Shorouk, monthly installment no higher than 60 thousand",
+      "gold": {
+        "areas": [
+          "shorouk"
+        ],
+        "unit_types": [
+          "duplex"
+        ],
+        "monthly_installment_max": 60000
+      },
+      "pred": {
+        "areas": [
+          "shorouk"
+        ],
+        "unit_types": [
+          "duplex"
+        ],
+        "budget_max": 60000
+      }
+    },
+    {
+      "id": "h-en-09",
+      "query": "3 bedroom place near Smart Village, nothing above 9M",
+      "gold": {
+        "bedrooms_min": 3,
+        "bedrooms_max": 3,
+        "near_landmark": "smart_village",
+        "budget_max": 9000000
+      },
+      "pred": {
+        "bedrooms_min": 3,
+        "bedrooms_max": 3,
+        "budget_min": 9000000,
+        "near_landmark": "smart_village",
+        "max_distance_km": 12.0
+      }
+    }
+  ]
+}

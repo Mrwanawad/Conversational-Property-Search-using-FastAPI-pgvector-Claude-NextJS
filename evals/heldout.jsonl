@@ -1,0 +1,24 @@
+{"id": "h-en-01", "lang": "en", "query": "two-bed flat in the Fifth Settlement, max 6M", "filters": {"areas": ["new_cairo"], "unit_types": ["apartment"], "bedrooms_min": 2, "bedrooms_max": 2, "budget_max": 6000000}}
+{"id": "h-en-02", "lang": "en", "query": "standalone villa in 6 October, keys now, budget 25 million tops", "filters": {"areas": ["october"], "unit_types": ["villa"], "ready_to_move": true, "budget_max": 25000000}}
+{"id": "h-en-03", "lang": "en", "query": "flat close to the American University, payments spread over 10 years", "filters": {"unit_types": ["apartment"], "near_landmark": "auc", "installment_years_min": 10}}
+{"id": "h-en-04", "lang": "en", "query": "chalet on the Sahel facing the sea, under twelve million", "filters": {"areas": ["north_coast"], "unit_types": ["chalet"], "amenities": ["sea_view"], "budget_max": 12000000}}
+{"id": "h-en-05", "lang": "en", "query": "semi finished 3BR in Mostakbal, no more than 15% upfront", "filters": {"areas": ["mostakbal_city"], "bedrooms_min": 3, "bedrooms_max": 3, "finishing": ["semi_finished"], "down_payment_max_pct": 15}}
+{"id": "h-en-06", "lang": "en", "query": "something in Sokhna with a pool of its own", "filters": {"areas": ["ain_sokhna"], "amenities": ["private_pool"]}}
+{"id": "h-en-07", "lang": "en", "query": "townhouse in the new administrative capital handed over by 2028", "filters": {"areas": ["new_capital"], "unit_types": ["townhouse"], "delivery_year_max": 2028}}
+{"id": "h-en-08", "lang": "en", "query": "duplex in Shorouk, monthly installment no higher than 60 thousand", "filters": {"areas": ["shorouk"], "unit_types": ["duplex"], "monthly_installment_max": 60000}}
+{"id": "h-en-09", "lang": "en", "query": "3 bedroom place near Smart Village, nothing above 9M", "filters": {"bedrooms_min": 3, "bedrooms_max": 3, "near_landmark": "smart_village", "budget_max": 9000000}}
+{"id": "h-ar-01", "lang": "ar", "query": "عايز شقة تلات أوض في المستقبل سيتي", "filters": {"areas": ["mostakbal_city"], "unit_types": ["apartment"], "bedrooms_min": 3, "bedrooms_max": 3}}
+{"id": "h-ar-02", "lang": "ar", "query": "فيلا مستقلة في أكتوبر جاهزة للسكن", "filters": {"areas": ["october"], "unit_types": ["villa"], "ready_to_move": true}}
+{"id": "h-ar-03", "lang": "ar", "query": "شاليه في العين السخنة بحمام سباحة خاص", "filters": {"areas": ["ain_sokhna"], "unit_types": ["chalet"], "amenities": ["private_pool"]}}
+{"id": "h-ar-04", "lang": "ar", "query": "شقة في العاصمة الإدارية بالتقسيط على 12 سنة", "filters": {"areas": ["new_capital"], "unit_types": ["apartment"], "installment_years_min": 12}}
+{"id": "h-ar-05", "lang": "ar", "query": "ستوديو في الشروق ميزانيتي مليونين", "filters": {"areas": ["shorouk"], "unit_types": ["studio"], "budget_max": 2000000}}
+{"id": "h-ar-06", "lang": "ar", "query": "دوبلكس قريب من مول مصر بمقدم مش أكتر من 500 ألف", "filters": {"unit_types": ["duplex"], "near_landmark": "mall_of_egypt", "down_payment_max_amount": 500000}}
+{"id": "h-ar-07", "lang": "ar", "query": "توين هاوس نص تشطيب في زايد الجديدة", "filters": {"areas": ["new_zayed"], "unit_types": ["twin_house"], "finishing": ["semi_finished"]}}
+{"id": "h-fr-01", "lang": "franco", "query": "3ayez villa fel sa7el b pool khas", "filters": {"areas": ["north_coast"], "unit_types": ["villa"], "amenities": ["private_pool"]}}
+{"id": "h-fr-02", "lang": "franco", "query": "sha2a odten fel tagamo3 el khames", "filters": {"areas": ["new_cairo"], "unit_types": ["apartment"], "bedrooms_min": 2, "bedrooms_max": 2}}
+{"id": "h-fr-03", "lang": "franco", "query": "penthouse fel 3asema el edarya ta7t 10 mlyon", "filters": {"areas": ["new_capital"], "unit_types": ["penthouse"], "budget_max": 10000000}}
+{"id": "h-fr-04", "lang": "franco", "query": "studio metshateb fe october", "filters": {"areas": ["october"], "unit_types": ["studio"], "finishing": ["fully_finished"]}}
+{"id": "h-fr-05", "lang": "franco", "query": "twin house fel shorouk estelam 2027", "filters": {"areas": ["shorouk"], "unit_types": ["twin_house"], "delivery_year_max": 2027}}
+{"id": "h-mx-01", "lang": "mixed", "query": "flat في المستقبل سيتي under 5 مليون", "filters": {"areas": ["mostakbal_city"], "unit_types": ["apartment"], "budget_max": 5000000}}
+{"id": "h-mx-02", "lang": "mixed", "query": "villa بجنينة كبيرة في New Zayed", "filters": {"areas": ["new_zayed"], "unit_types": ["villa"], "amenities": ["garden"]}}
+{"id": "h-mx-03", "lang": "mixed", "query": "شاليه في الساحل ready to move with sea view", "filters": {"areas": ["north_coast"], "unit_types": ["chalet"], "ready_to_move": true, "amenities": ["sea_view"]}}

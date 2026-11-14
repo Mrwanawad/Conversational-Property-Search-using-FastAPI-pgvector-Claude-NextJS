@@ -17,7 +17,7 @@ flowchart LR
     Q[User message] --> N[Normalise<br/>Arabic folding, Franco map,<br/>synonym dictionary]
     N --> U{Understand}
     U -->|PARSER=rules| R[Rule parser]
-    U -->|PARSER=anthropic| C[Claude tool call<br/>strict schema]
+    U -->|PARSER=anthropic / llm| C[LLM tool call<br/>Claude, Groq, OpenRouter]
     C -.any failure.-> R
     R --> M[Merge with session state<br/>refine / more / reset]
     C --> M
@@ -45,19 +45,27 @@ flowchart LR
 
 ## Results
 
-`python scripts/eval.py` runs 32 labelled queries (10 Arabic, 8 Franco, 10 English, 4 mixed) through the full turn on Postgres. Results are in `evals/results/rules.json`.
+Two labelled sets, scored through the full turn on Postgres with `python scripts/eval.py` (results in `evals/results/`):
 
-| Metric | Rules parser |
-|---|---|
-| Filter exact match | 1.00 (32/32) |
-| Field micro F1 | 1.00 |
-| Clarification accuracy | 1.00 |
-| Zero-result rate after relaxation | 0.031 (1 query: a villa under 2M has no match at any relaxation; the reply gives the price floor) |
-| Turn latency p50 / p95 | 9 ms / 12 ms (hashing embedder, no reranker, laptop) |
+- **Dev set** (`evals/queries.jsonl`, 32 queries: 10 Arabic, 8 Franco, 10 English, 4 mixed). Written next to the dictionary, so it is a regression gate (CI fails under 0.9).
+- **Held-out set** (`evals/heldout.jsonl`, 24 queries). Phrasings the dictionary was not built for: "Fifth Settlement", "keys now", "25 million tops", "no more than 15% upfront", "تلات أوض", "odten". Labelled before any parser was run on it.
 
-The first run scored 0.969 because "shale" (Franco for chalet) was missing from the dictionary. That one gap is fixed.
+| Parser | Dev exact match | Held-out exact match | LLM calls | LLM latency p50 | Cost / query |
+|---|---|---|---|---|---|
+| Rules only | **1.00** | 0.71 | 0 | — | $0 |
+| Groq `gpt-oss-120b`, every turn | 0.94 | **0.92** | 100% | ~0.9-1.3 s | ~$0.0005-0.0006 |
+| Groq `gpt-oss-120b`, gated (deployed) | **1.00** | **0.92** | 3% dev, 42% held-out | ~1.0 s | ~$0.00002-0.00025 |
+| Groq `gpt-oss-20b`, every turn | — | 0.83 | 100% | ~1.0 s | ~$0.0003 |
 
-The set is small and written next to the dictionary, so it works as a regression gate (CI fails under 0.9), not as proof of coverage on real traffic. The Claude parser path (`--parser anthropic`) is built and tested for fallback, but it hasn't been scored yet because no API key was available.
+**Gated** means rules first, and the LLM only sees a message when the rules leave a term unread (`LLM_MODE=on_unknown`). It keeps the rules' exact handling of what the dictionary knows, and adds the LLM where the dictionary has a gap. On the held-out set it sent 10 of 24 messages to Groq; on the dev set, 1 of 32. Most turns stay at ~10 ms and the free tier's 8k tokens per minute goes much further.
+
+Notes:
+- Field micro F1 for the gated parser: 1.00 dev, 0.98 held-out. Clarification accuracy 1.00 on both.
+- Remaining held-out misses: "two-bed" (rules drop it silently, so the gate never fires) and "a pool of its own" read as a shared pool. Both are known gaps, kept in the set on purpose rather than patched into the dictionary.
+- `qwen/qwen3.8-27b` was tried and dropped: it called a tool that does not exist on 46% of turns (each one fell back to rules).
+- The gpt-oss-20b dev run hit the free-tier quota on every call, so it has no dev number. The every-turn gpt-oss-120b dev run also fell back to rules on 16% of turns (cause not logged in that run); its two misses (dropped area, dropped garden on Franco queries) are model misses.
+- Rules-only turn latency is 9 ms p50 / 12 ms p95 (hashing embedder, no reranker, laptop). Zero-result rate after relaxation is 0.031 on dev: a villa under 2M has no match at any relaxation, so the reply gives the price floor.
+- When an LLM call fails (rate limit, timeout, invalid tool arguments), that turn uses the rule parser. Search never goes down because of a model.
 
 ## Run it
 
@@ -152,7 +160,10 @@ See `.env.example`.
 
 | Variable | Default | Options |
 |---|---|---|
-| `PARSER` | `rules` | `anthropic` (Claude tool calling, needs `ANTHROPIC_API_KEY`) |
+| `PARSER` | `rules` | `llm` (any OpenAI-compatible API: Groq, OpenRouter; needs `LLM_API_KEY`), `anthropic` (Claude, needs `ANTHROPIC_API_KEY`) |
+| `LLM_BASE_URL` | Groq | e.g. `https://openrouter.ai/api/v1` |
+| `LLM_MODEL` | `openai/gpt-oss-120b` | any tool-calling model on that endpoint |
+| `LLM_MODE` | `on_unknown` | `always` (LLM on every turn) |
 | `EMBEDDER` | `hashing` | `bge-m3` (downloads the model; `pip install -e ".[ml]"`) |
 | `RERANKER` | `none` | `bge` (bge-reranker-v2-m3 cross-encoder) |
 | `LLM_SUMMARY` | `false` | Adds a Claude narrative under the template reply |
@@ -175,8 +186,8 @@ All inventory is synthetic (`data/generate.py`, fixed seed). Developer, compound
 
 ## Not built yet
 
-- Scored Claude parser run and bge-m3 / reranker retrieval comparison (NDCG@10, recall@20, MRR) on a larger labelled set. The click and inquiry events the UI logs are the intended source of those labels.
-- The live demo runs the hashing embedder and no reranker to fit a free 512 MB instance. bge-m3 and the cross-encoder need a bigger box.
+- Scored Claude parser run (built and tested for fallback; no Anthropic API key) and a bge-m3 / reranker retrieval comparison (NDCG@10, recall@20, MRR). The click and inquiry events the UI logs are the intended source of those relevance labels.
+- The live demo runs the hashing embedder and no reranker to fit a serverless function. bge-m3 and the cross-encoder need a bigger box.
 
 ## License
 

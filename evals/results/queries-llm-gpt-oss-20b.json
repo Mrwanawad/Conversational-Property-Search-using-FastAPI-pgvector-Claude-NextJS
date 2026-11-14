@@ -1,0 +1,48 @@
+{
+  "parser": "llm",
+  "queries": 32,
+  "exact_match": 1.0,
+  "exact_match_by_language": {
+    "ar": 1.0,
+    "en": 1.0,
+    "franco": 1.0,
+    "mixed": 1.0
+  },
+  "micro_f1": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "per_field_f1": {
+    "amenities": 1.0,
+    "areas": 1.0,
+    "bedrooms_max": 1.0,
+    "bedrooms_min": 1.0,
+    "budget_max": 1.0,
+    "budget_min": 1.0,
+    "delivery_year_max": 1.0,
+    "down_payment_max_pct": 1.0,
+    "finishing": 1.0,
+    "installment_years_min": 1.0,
+    "monthly_installment_max": 1.0,
+    "near_landmark": 1.0,
+    "ready_to_move": 1.0,
+    "unit_types": 1.0
+  },
+  "clarification_accuracy": 1.0,
+  "zero_result_rate": 0.031,
+  "latency_ms": {
+    "p50": 25.6,
+    "p95": 49.4
+  },
+  "misses": [],
+  "model": "openai/gpt-oss-20b",
+  "fallback_rate": 1.0,
+  "llm_mode": "always",
+  "llm_calls": 32,
+  "llm_latency_ms": {
+    "p50": 1.2,
+    "p95": 14.1
+  },
+  "cost_per_query_usd": 0.0
+}

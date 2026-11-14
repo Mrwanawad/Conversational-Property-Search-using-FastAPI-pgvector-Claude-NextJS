@@ -1,0 +1,94 @@
+{
+  "parser": "llm",
+  "queries": 24,
+  "exact_match": 0.917,
+  "exact_match_by_language": {
+    "ar": 1.0,
+    "en": 0.889,
+    "franco": 0.8,
+    "mixed": 1.0
+  },
+  "micro_f1": {
+    "precision": 0.976,
+    "recall": 0.988,
+    "f1": 0.982
+  },
+  "per_field_f1": {
+    "amenities": 0.833,
+    "areas": 1.0,
+    "bedrooms_max": 1.0,
+    "bedrooms_min": 1.0,
+    "budget_max": 1.0,
+    "delivery_year_max": 1.0,
+    "down_payment_max_amount": 1.0,
+    "down_payment_max_pct": 1.0,
+    "finishing": 1.0,
+    "installment_years_min": 1.0,
+    "monthly_installment_max": 1.0,
+    "near_landmark": 1.0,
+    "ready_to_move": 0.857,
+    "unit_types": 1.0
+  },
+  "clarification_accuracy": 1.0,
+  "zero_result_rate": 0.042,
+  "latency_ms": {
+    "p50": 8503.0,
+    "p95": 24641.6
+  },
+  "misses": [
+    {
+      "id": "h-en-06",
+      "query": "something in Sokhna with a pool of its own",
+      "gold": {
+        "areas": [
+          "ain_sokhna"
+        ],
+        "amenities": [
+          "private_pool"
+        ]
+      },
+      "pred": {
+        "areas": [
+          "ain_sokhna"
+        ],
+        "amenities": [
+          "swimming_pool"
+        ]
+      }
+    },
+    {
+      "id": "h-fr-04",
+      "query": "studio metshateb fe october",
+      "gold": {
+        "areas": [
+          "october"
+        ],
+        "unit_types": [
+          "studio"
+        ],
+        "finishing": [
+          "fully_finished"
+        ]
+      },
+      "pred": {
+        "areas": [
+          "october"
+        ],
+        "unit_types": [
+          "studio"
+        ],
+        "ready_to_move": true,
+        "finishing": [
+          "fully_finished"
+        ]
+      }
+    }
+  ],
+  "model": "openai/gpt-oss-120b",
+  "fallback_rate": 0.0,
+  "llm_latency_ms": {
+    "p50": 1295.4,
+    "p95": 1946.6
+  },
+  "cost_per_query_usd": 0.000593
+}

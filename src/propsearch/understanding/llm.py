@@ -1,4 +1,4 @@
-"""Claude tool calling -> Pydantic filters.
+"""LLM tool calling -> Pydantic filters (Claude, or any OpenAI-compatible API such as Groq / OpenRouter).
 
 The model sees the normalised query, the dictionary concepts the normaliser found, the previous
 session filters and the catalog (areas, landmarks, compounds). It must call `set_search_filters`
@@ -14,6 +14,7 @@ import time
 from dataclasses import dataclass, field
 
 import anthropic
+import httpx
 from pydantic import ValidationError
 
 from propsearch.data.catalog import AREA_GROUPS, AREAS, LANDMARKS
@@ -23,11 +24,13 @@ from propsearch.understanding.rules import RuleParser
 
 log = logging.getLogger(__name__)
 
-# USD per million tokens (input, output), Claude API first-party pricing.
+# USD per million tokens (input, output). Claude: first-party API. Groq: list prices when this was written.
 PRICING = {
     "claude-opus-5-5": (4.00, 20.00),
     "claude-sonnet-5-5": (2.00, 10.00),
     "claude-haiku-5-5": (0.10, 0.50),
+    "openai/gpt-oss-120b": (0.15, 0.60),
+    "openai/gpt-oss-20b": (0.075, 0.30),
 }
 TOOL_NAME = "set_search_filters"
 
@@ -150,6 +153,41 @@ def _clean(raw: dict) -> dict:
     return out
 
 
+def to_parsed(raw: dict, text: str, parser: str) -> ParsedQuery:
+    """Tool arguments -> validated ParsedQuery. Raises ValidationError / TypeError on bad output."""
+    raw = _clean(dict(raw))
+    soft = raw.pop("soft_preferences", "") or ""
+    sort = raw.pop("sort", "relevance") or "relevance"
+    intent = raw.pop("intent", "search") or "search"
+    amb = raw.pop("ambiguous_areas", []) or []
+    filters = SearchFilters(**{k: v for k, v in raw.items() if v is not None})
+    return ParsedQuery(
+        filters=filters,
+        soft_preferences=soft.strip(),
+        sort=sort,
+        intent=intent,
+        ambiguities=[Ambiguity(field="areas", surface=text, options=amb)] if len(amb) > 1 else [],
+        parser=parser,
+        confidence=1.0,
+        unknown_terms=tag(text).unknown_terms,
+    )
+
+
+def state_message(text: str, previous: ParsedQuery | None, context: dict) -> str:
+    tq = tag(text)
+    state = {
+        "previous_filters": previous.filters.model_dump(mode="json", exclude_defaults=True)
+        if previous
+        else {},
+        "previous_soft_preferences": previous.soft_preferences if previous else "",
+        "previous_results": context,
+        "normalized_text": tq.normalized,
+        "dictionary_concepts": tq.concepts(),
+        "detected_language": tq.language,
+    }
+    return f"<state>{json.dumps(state, ensure_ascii=False)}</state>\n<message>{text}</message>"
+
+
 class ClaudeParser:
     name = "claude"
 
@@ -171,24 +209,7 @@ class ClaudeParser:
         self.last_usage = LlmUsage()
 
     def _messages(self, text: str, previous: ParsedQuery | None, context: dict) -> list[dict]:
-        tq = tag(text)
-        state = {
-            "previous_filters": previous.filters.model_dump(mode="json", exclude_defaults=True)
-            if previous
-            else {},
-            "previous_soft_preferences": previous.soft_preferences if previous else "",
-            "previous_results": context,
-            "normalized_text": tq.normalized,
-            "dictionary_concepts": tq.concepts(),
-            "detected_language": tq.language,
-        }
-        return [
-            {
-                "role": "user",
-                "content": f"<state>{json.dumps(state, ensure_ascii=False)}</state>\n"
-                f"<message>{text}</message>",
-            }
-        ]
+        return [{"role": "user", "content": state_message(text, previous, context)}]
 
     def parse(
         self, text: str, previous: ParsedQuery | None = None, context: dict | None = None
@@ -232,23 +253,7 @@ class ClaudeParser:
             block = next((b for b in resp.content if b.type == "tool_use" and b.name == TOOL_NAME), None)
             if block is None:
                 raise ValueError(f"no tool call (stop_reason={resp.stop_reason})")
-            raw = _clean(dict(block.input))
-            soft = raw.pop("soft_preferences", "") or ""
-            sort = raw.pop("sort", "relevance") or "relevance"
-            intent = raw.pop("intent", "search") or "search"
-            amb = raw.pop("ambiguous_areas", []) or []
-            filters = SearchFilters(**{k: v for k, v in raw.items() if v is not None})
-            tq = tag(text)
-            pq = ParsedQuery(
-                filters=filters,
-                soft_preferences=soft.strip(),
-                sort=sort,
-                intent=intent,
-                ambiguities=[Ambiguity(field="areas", surface=text, options=amb)] if len(amb) > 1 else [],
-                parser=self.name,
-                confidence=1.0,
-                unknown_terms=tq.unknown_terms,
-            )
+            pq = to_parsed(block.input, text, self.name)
             self.last_usage = usage
             return pq
         except (
@@ -266,3 +271,124 @@ class ClaudeParser:
             pq.parser = "rules_fallback"
             self.last_usage = usage
             return pq
+
+
+class OpenAICompatParser:
+    """Same schema, prompt and fallback as ClaudeParser, over the OpenAI chat-completions API.
+
+    Works with Groq (https://api.groq.com/openai/v1), OpenRouter (https://openrouter.ai/api/v1) and
+    any other OpenAI-compatible endpoint. The tool call is forced; the arguments are validated with
+    Pydantic exactly like the Claude path, and any failure falls back to the rule parser.
+    """
+
+    name = "llm"
+
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        model: str,
+        compounds: list[tuple[str, str, str, str]],
+        reasoning_effort: str | None = "low",
+        timeout_s: float = 15.0,
+        fallback: RuleParser | None = None,
+        http: httpx.Client | None = None,
+        max_wait_s: float = 0.0,
+    ) -> None:
+        self.max_wait_s = max_wait_s  # >0 only for offline evals: wait out 429s instead of falling back
+        self.url = base_url.rstrip("/") + "/chat/completions"
+        self.model = model
+        self.reasoning_effort = reasoning_effort or None
+        self.http = http or httpx.Client(timeout=timeout_s, headers={"Authorization": f"Bearer {api_key}"})
+        schema = tool_schema([c[0] for c in compounds])
+        self.tool = {
+            "type": "function",
+            "function": {
+                "name": TOOL_NAME,
+                "description": schema["description"],
+                "parameters": schema["input_schema"],
+            },
+        }
+        self.system = system_prompt(compounds)
+        self.fallback = fallback or RuleParser()
+        self.last_usage = LlmUsage()
+
+    def parse(
+        self, text: str, previous: ParsedQuery | None = None, context: dict | None = None
+    ) -> ParsedQuery:
+        context = context or {}
+        usage = LlmUsage(model=self.model)
+        t = time.perf_counter()
+        body = {
+            "model": self.model,
+            "temperature": 0,
+            "max_tokens": 2000,
+            "messages": [
+                {"role": "system", "content": self.system},
+                {"role": "user", "content": state_message(text, previous, context)},
+            ],
+            "tools": [self.tool],
+            "tool_choice": {"type": "function", "function": {"name": TOOL_NAME}},
+        }
+        if self.reasoning_effort:
+            body["reasoning_effort"] = self.reasoning_effort
+        try:
+            resp = self.http.post(self.url, json=body)
+            waited = 0.0
+            while resp.status_code == 429 and waited < self.max_wait_s:
+                pause = min(float(resp.headers.get("retry-after", 5)), 60.0) + 0.5
+                time.sleep(pause)
+                waited += pause
+                t = time.perf_counter()
+                resp = self.http.post(self.url, json=body)
+            usage.latency_ms = (time.perf_counter() - t) * 1000
+            if resp.status_code >= 400:
+                raise ValueError(f"HTTP {resp.status_code}: {resp.text[:200]}")
+            data = resp.json()
+            u = data.get("usage") or {}
+            usage.input_tokens = u.get("prompt_tokens", 0) or 0
+            usage.output_tokens = u.get("completion_tokens", 0) or 0
+            p_in, p_out = PRICING.get(self.model, (0.0, 0.0))
+            usage.cost_usd = round((usage.input_tokens * p_in + usage.output_tokens * p_out) / 1e6, 6)
+            calls = data["choices"][0]["message"].get("tool_calls") or []
+            call = next((c for c in calls if c["function"]["name"] == TOOL_NAME), None)
+            if call is None:
+                raise ValueError("no tool call")
+            pq = to_parsed(json.loads(call["function"]["arguments"]), text, self.name)
+            self.last_usage = usage
+            return pq
+        except (httpx.HTTPError, ValidationError, ValueError, KeyError, TypeError, IndexError) as e:
+            usage.error = f"{type(e).__name__}: {e}"[:300]
+            usage.latency_ms = (time.perf_counter() - t) * 1000
+            log.warning("llm parser failed, using rules: %s", usage.error)
+            pq = self.fallback.parse(text, previous, context)
+            pq.parser = "rules_fallback"
+            self.last_usage = usage
+            return pq
+
+
+class GatedParser:
+    """Rules first; the LLM only sees messages the rules could not fully read (unknown terms).
+
+    Most traffic stays deterministic and ~10 ms, and LLM calls (latency, cost, free-tier quota) are
+    spent where the dictionary has a gap. The LLM parser still falls back to rules on any failure.
+    """
+
+    name = "gated"
+
+    def __init__(self, rules: RuleParser, llm) -> None:
+        self.rules = rules
+        self.llm = llm
+        self.model = llm.model
+        self.last_usage = LlmUsage()
+
+    def parse(
+        self, text: str, previous: ParsedQuery | None = None, context: dict | None = None
+    ) -> ParsedQuery:
+        pq = self.rules.parse(text, previous, context)
+        if not pq.unknown_terms:
+            self.last_usage = LlmUsage()
+            return pq
+        out = self.llm.parse(text, previous, context)
+        self.last_usage = self.llm.last_usage
+        return out
