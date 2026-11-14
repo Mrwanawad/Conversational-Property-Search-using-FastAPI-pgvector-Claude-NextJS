@@ -33,3 +33,6 @@ Thumbs.db
 
 # Demo GIF build output
 docs/demo/build/
+
+.vercel
+.env*

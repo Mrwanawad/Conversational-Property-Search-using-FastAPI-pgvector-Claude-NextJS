@@ -1,0 +1,10 @@
+.venv
+.github
+frontend
+docs
+tests
+evals
+scripts
+Dockerfile
+docker-compose.yml
+render.yaml

@@ -8,7 +8,7 @@ Every price, size and unit code in a reply comes from the database. No model eve
 
 <p align="center"><img src="docs/demo.gif" width="100%" alt="Demo: an Egyptian Arabic query is parsed into filters, ranked units appear with reasons, a one-tap 'cheaper' refinement, payment plans and an inquiry" /></p>
 
-**Live demo:** _coming soon_ (synthetic inventory; the first search after idle can take up to a minute while the free API instance wakes up).
+**Live demo:** https://conversational-property-search.vercel.app (synthetic inventory, not real listings). API: https://propsearch-api.vercel.app/docs
 
 ## How a turn works
 
@@ -127,8 +127,14 @@ Point it at a deployment with `E2E_BASE_URL=https://... npx playwright test`. CI
 
 ## Deploy
 
-- **API + Postgres on Render:** `render.yaml` is a Blueprint (Docker web service + Postgres with pgvector). New Blueprint, pick the repo, and set `ANTHROPIC_API_KEY` / Langfuse keys if you want them. The app creates the `vector` extension and seeds the inventory on first boot. Hosted `postgres://` URLs are converted to the psycopg driver automatically.
-- **Web on Vercel:** import the repo with root directory `frontend` and set `API_URL` to the Render service URL.
+The live demo runs on free tiers with no card: two Vercel projects and a Neon Postgres (pgvector).
+
+- **API:** Vercel Python function. `api/index.py` wraps the FastAPI app, `vercel.json` routes every path to it, and `requirements.txt` holds the runtime deps. The app sets itself up on the first request because serverless runtimes may skip ASGI lifespan.
+- **Database:** Neon via the Vercel marketplace (`vercel integration add neon`), which injects `DATABASE_URL`. Seed it once from any machine: `DATABASE_URL=<neon direct url> python -m propsearch.seed`.
+- **Web:** Vercel project with root directory `frontend` and `API_URL=https://<api-project>.vercel.app`.
+- **Containers:** the same API image runs anywhere Docker does. `render.yaml` is a Render Blueprint for it, but Render requires a card even on the free plan.
+
+The Playwright suite runs against production too: 16/16 pass on https://conversational-property-search.vercel.app.
 
 ## API
 

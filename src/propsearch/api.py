@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
+import threading
 from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sqlalchemy import select, text
@@ -47,17 +49,33 @@ class EventRequest(BaseModel):
 def create_app(settings: Settings | None = None, *, client=None, seed: bool = True) -> FastAPI:
     settings = settings or get_settings()
 
+    lock = threading.Lock()
+
+    def init(app: FastAPI) -> None:
+        with lock:
+            if getattr(app.state, "engine", None) is not None:
+                return
+            engine = get_engine(settings.database_url)
+            if seed:
+                ensure_seeded(engine, settings.embedder, settings.embed_device)
+            app.state.Session = session_factory(engine)
+            app.state.engine = SearchEngine(settings, app.state.Session, client=client)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        engine = get_engine(settings.database_url)
-        if seed:
-            ensure_seeded(engine, settings.embedder, settings.embed_device)
-        app.state.Session = session_factory(engine)
-        app.state.engine = SearchEngine(settings, app.state.Session, client=client)
+        init(app)
         yield
         telemetry.flush()
 
     app = FastAPI(title="Conversational Property Search", version="0.1.0", lifespan=lifespan)
+
+    @app.middleware("http")
+    async def ensure_ready(request: Request, call_next):
+        # Serverless runtimes (Vercel) may not send ASGI lifespan events; set up on the first request instead.
+        if getattr(request.app.state, "engine", None) is None:
+            await run_in_threadpool(init, request.app)
+        return await call_next(request)
+
     app.add_middleware(
         CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["*"], allow_headers=["*"]
     )
