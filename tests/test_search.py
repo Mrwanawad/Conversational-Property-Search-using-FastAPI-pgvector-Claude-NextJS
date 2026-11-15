@@ -133,3 +133,97 @@ def test_relaxed_budget_reason_compares_with_the_asked_budget(engine):
     for h in over:
         assert any(x.kind == "relaxed" and "over your" in x.en for x in h.reasons)
         assert not any("under your" in x.en for x in h.reasons)
+
+
+class _Down:
+    """Remote model that is unreachable (timeout, quota, missing token)."""
+
+    name = "hashing"
+
+    def embed(self, texts, *, query=False):
+        raise httpx.ConnectTimeout("hf down")
+
+    def score(self, query, docs):
+        raise httpx.ConnectTimeout("hf down")
+
+
+def test_search_survives_remote_model_outage(Session):
+    from propsearch.retrieval.ranker import rank
+    from propsearch.understanding.rules import RuleParser
+
+    pq = RuleParser().parse("apartment in New Cairo, quiet area")
+    with Session() as db:
+        res = rank(db, pq, _Down(), _Down())
+    assert res.total > 0 and res.ranked
+    assert res.stage_ms["vector_failed"] == 1 and res.stage_ms["rerank_failed"] == 1
+    assert any(s.bm25_rank is not None for s in res.ranked)
+
+
+def test_hf_backends_parse_inference_responses(monkeypatch):
+    import numpy as np
+
+    from propsearch.retrieval import embed, rerank
+
+    calls = []
+
+    def fake_post(model, task, payload, timeout=8.0):
+        calls.append((model, task))
+        if task == "feature-extraction":
+            return [[3.0, 4.0] for _ in payload["inputs"]]
+        return [[{"label": "LABEL_0", "score": 0.9}], [{"label": "LABEL_0", "score": 0.1}]]
+
+    monkeypatch.setattr(embed, "hf_post", fake_post)
+    vecs = embed.get_embedder("bge-m3", "hf").embed(["a", "b"])
+    assert np.allclose(vecs, [[0.6, 0.8], [0.6, 0.8]])
+    scores = rerank.get_reranker("bge", "hf").score("quiet", ["calm street", "busy road"])
+    assert scores.tolist() == [0.9, 0.1]
+    assert calls == [
+        ("BAAI/bge-m3", "feature-extraction"),
+        ("BAAI/bge-reranker-v2-m3", "text-classification"),
+    ]
+
+
+def test_precomputed_models_read_scores_from_postgres(Session):
+    import numpy as np
+    from sqlalchemy import delete
+
+    from propsearch.db import SoftScore, SoftVector
+    from propsearch.retrieval.precomputed import (
+        NotPrecomputed,
+        PrecomputedEmbedder,
+        PrecomputedReranker,
+        text_sha,
+    )
+
+    a, b = np.zeros(1024), np.zeros(1024)
+    a[0], b[1] = 1.0, 1.0
+    with Session() as db:
+        db.add_all(
+            [SoftVector(phrase="quiet calm area", embedding=a), SoftVector(phrase="privacy", embedding=b)]
+        )
+        db.add_all(
+            [
+                SoftScore(phrase="quiet calm area", text_sha=text_sha("calm street"), score=0.8),
+                SoftScore(phrase="privacy", text_sha=text_sha("calm street"), score=0.4),
+            ]
+        )
+        db.commit()
+    try:
+        emb = PrecomputedEmbedder(Session)
+        v = emb.embed(["quiet calm area; privacy; unseen wish"])[0]
+        assert np.allclose(v[:2], [2**-0.5, 2**-0.5])  # mean of the known phrases, renormalised
+        with pytest.raises(NotPrecomputed):
+            emb.embed(["unseen wish"])
+        # free text from an LLM parser maps onto the stored phrases through the synonym dictionary
+        assert np.allclose(emb.embed(["quiet"])[0], a)
+        rr = PrecomputedReranker(Session)
+        assert rr.score("quiet calm area; privacy", ["calm street", "other"]).tolist() == pytest.approx(
+            [0.6, 0.0]
+        )
+        with pytest.raises(NotPrecomputed):
+            rr.score("unseen wish", ["calm street"])
+    finally:
+        with Session() as db:
+            db.execute(delete(SoftVector))
+            db.execute(delete(SoftScore))
+            db.commit()

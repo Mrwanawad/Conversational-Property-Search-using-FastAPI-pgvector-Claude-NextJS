@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass, field
 
@@ -17,6 +18,8 @@ from propsearch.retrieval.embed import Embedder
 from propsearch.retrieval.lexical import get_index, reset_index
 from propsearch.retrieval.rerank import Reranker
 from propsearch.seed import unit_doc
+
+log = logging.getLogger(__name__)
 
 RRF_K = 60
 FUSED_DEPTH = 100
@@ -152,9 +155,14 @@ def rank(
         stage["bm25"] = (time.perf_counter() - t) * 1000
         t = time.perf_counter()
         if use_vector:
-            vec = vector_ranking(session, embedder, soft, ids, FUSED_DEPTH)
-            vec_rank = {u: i for i, u in enumerate(vec)}
-            rankings.append(vec)
+            # a remote embedder can time out or hit a quota: rank with BM25 alone rather than fail the turn
+            try:
+                vec = vector_ranking(session, embedder, soft, ids, FUSED_DEPTH)
+                vec_rank = {u: i for i, u in enumerate(vec)}
+                rankings.append(vec)
+            except Exception as e:
+                log.warning("vector ranking skipped, using BM25 only: %r", e)
+                stage["vector_failed"] = 1
         stage["vector"] = (time.perf_counter() - t) * 1000
         fused = rrf(rankings)
         order = sorted(fused, key=fused.get, reverse=True)
@@ -164,11 +172,16 @@ def rank(
             t = time.perf_counter()
             head = order[:RERANK_DEPTH]
             docs = {u.id: unit_doc(u) for u in session.scalars(select(Unit).where(Unit.id.in_(head)))}
-            ce = reranker.score(soft, [docs[u] for u in head])
-            # reranked head stays above the fused tail
-            relevance = {u: 0.5 + 0.5 * float(s) for u, s in zip(head, ce, strict=True)}
-            for u in order[RERANK_DEPTH:]:
-                relevance[u] = 0.5 * fused[u] / top
+            try:
+                ce = reranker.score(soft, [docs[u] for u in head])
+            except Exception as e:
+                log.warning("rerank skipped, keeping fused order: %r", e)
+                stage["rerank_failed"] = 1
+            else:
+                # reranked head stays above the fused tail
+                relevance = {u: 0.5 + 0.5 * float(s) for u, s in zip(head, ce, strict=True)}
+                for u in order[RERANK_DEPTH:]:
+                    relevance[u] = 0.5 * fused[u] / top
             stage["rerank"] = (time.perf_counter() - t) * 1000
 
     scored = []

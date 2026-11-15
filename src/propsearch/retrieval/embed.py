@@ -1,8 +1,14 @@
-"""Text embedders. bge-m3 (multilingual, handles Arabic + English in one space) or a hashing fallback."""
+"""Text embedders. bge-m3 (multilingual, handles Arabic + English in one space) or a hashing fallback.
+
+bge-m3 runs locally through sentence-transformers, or remotely on Hugging Face Inference (device "hf",
+token in HF_TOKEN) where torch does not fit, such as a serverless function. Both give the same vectors,
+so units embedded locally are searched with remote query vectors.
+"""
 
 from __future__ import annotations
 
 import hashlib
+import os
 from functools import lru_cache
 from typing import Protocol
 
@@ -45,7 +51,9 @@ class BgeM3Embedder:
     def __init__(self, device: str = "cpu") -> None:
         from sentence_transformers import SentenceTransformer
 
-        self.model = SentenceTransformer("BAAI/bge-m3", device=device)
+        # fp16 on GPU: both bge models fit a 4 GB card; cosine to fp32 vectors is ~0.9999
+        kw = {"model_kwargs": {"dtype": "float16"}} if device.startswith("cuda") else {}
+        self.model = SentenceTransformer("BAAI/bge-m3", device=device, **kw)
 
     def embed(self, texts: list[str], *, query: bool = False) -> np.ndarray:
         return np.asarray(
@@ -54,8 +62,32 @@ class BgeM3Embedder:
         )
 
 
+HF_URL = "https://router.huggingface.co/hf-inference/models/{model}/pipeline/{task}"
+
+
+def hf_post(model: str, task: str, payload: dict, timeout: float = 8.0):
+    import httpx
+
+    r = httpx.post(
+        HF_URL.format(model=model, task=task),
+        json=payload,
+        headers={"Authorization": f"Bearer {os.environ.get('HF_TOKEN', '')}"},
+        timeout=timeout,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+class HfBgeM3Embedder:
+    name = "bge-m3"
+
+    def embed(self, texts: list[str], *, query: bool = False) -> np.ndarray:
+        vecs = np.asarray(hf_post("BAAI/bge-m3", "feature-extraction", {"inputs": texts}), dtype=np.float32)
+        return vecs / np.linalg.norm(vecs, axis=1, keepdims=True)
+
+
 @lru_cache(maxsize=2)
 def get_embedder(name: str, device: str = "cpu") -> Embedder:
     if name == "bge-m3":
-        return BgeM3Embedder(device)
+        return HfBgeM3Embedder() if device == "hf" else BgeM3Embedder(device)
     return HashingEmbedder()

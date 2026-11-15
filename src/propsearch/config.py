@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     # Retrieval models. "hashing" needs no download (tests, CI, small instances).
     embedder: Literal["bge-m3", "hashing"] = "hashing"
     reranker: Literal["bge", "none"] = "none"
+    # cpu / cuda: local sentence-transformers. hf: Hugging Face Inference (HF_TOKEN, needs credits).
+    # precomputed: query vectors and reranker scores computed offline and read from Postgres (no model
+    # at serve time; see retrieval/precomputed.py).
     embed_device: str = "cpu"
     top_k: int = 8
 

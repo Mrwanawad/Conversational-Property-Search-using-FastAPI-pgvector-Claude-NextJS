@@ -7,10 +7,14 @@ python -m propsearch.seed --reset    # drop everything and reload
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import time
 from datetime import datetime
+from pathlib import Path
 
+import numpy as np
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.engine import Engine
 
@@ -99,17 +103,28 @@ def load_inventory(engine: Engine) -> int:
     return len(units)
 
 
+CACHE_DIR = Path(os.environ.get("PROPSEARCH_CACHE", Path.home() / ".cache" / "propsearch"))
+
+
 def embed_units(engine: Engine, embedder_name: str, device: str = "cpu") -> int:
+    """Embed every unit description. Model vectors are cached on disk by content hash, so a reseed or a
+    push of the same inventory to another database (CPU bge-m3: ~40 min for 1.5k units) is instant."""
     embedder = get_embedder(embedder_name, device)
     Session = session_factory(engine)
     with Session() as s:
         units = s.scalars(select(Unit).order_by(Unit.id)).all()
-        batch = 64
-        for i in range(0, len(units), batch):
-            chunk = units[i : i + batch]
-            vecs = embedder.embed([unit_doc(u) for u in chunk])
-            for u, v in zip(chunk, vecs, strict=True):
-                u.embedding = v.tolist()
+        docs = [unit_doc(u) for u in units]
+        digest = hashlib.sha256(chr(0).join(docs).encode()).hexdigest()[:16]
+        cache = CACHE_DIR / f"{embedder.name}-{digest}.npy"
+        if embedder.name != "hashing" and cache.exists():
+            vecs = np.load(cache)
+        else:
+            vecs = np.concatenate([embedder.embed(docs[i : i + 64]) for i in range(0, len(docs), 64)])
+            if embedder.name != "hashing":
+                cache.parent.mkdir(parents=True, exist_ok=True)
+                np.save(cache, vecs)
+        for u, v in zip(units, vecs, strict=True):
+            u.embedding = v.tolist()
         s.merge(Meta(key="embedder", value=embedder.name))
         s.commit()
         return len(units)

@@ -17,6 +17,7 @@ from propsearch.db import Compound, QueryLog, SearchSession, Unit
 from propsearch.domain import ParsedQuery, SearchTurnResponse
 from propsearch.normalize import detect_language
 from propsearch.respond import (
+    SENT_SPLIT,
     clarification_for,
     llm_narrative,
     suggestions,
@@ -42,8 +43,17 @@ class SearchEngine:
     def __init__(self, settings: Settings, Session: sessionmaker[Session], *, client=None) -> None:
         self.settings = settings
         self.Session = Session
-        self.embedder = get_embedder(settings.embedder, settings.embed_device)
-        self.reranker = get_reranker(settings.reranker, settings.embed_device)
+        if settings.embed_device == "precomputed":
+            from propsearch.retrieval.precomputed import PrecomputedEmbedder, PrecomputedReranker
+
+            self.embedder = PrecomputedEmbedder(Session)
+            self.reranker = PrecomputedReranker(Session) if settings.reranker == "bge" else None
+            # sentence scores are stored either way; they pick the quoted evidence sentence
+            self.evidence_model = PrecomputedReranker(Session)
+        else:
+            self.embedder = get_embedder(settings.embedder, settings.embed_device)
+            self.reranker = get_reranker(settings.reranker, settings.embed_device)
+            self.evidence_model = self.reranker
         with Session() as s:
             comps = [(c.slug, c.name_en, c.name_ar, c.area) for c in s.scalars(select(Compound))]
             self.area_counts = dict(
@@ -86,14 +96,24 @@ class SearchEngine:
 
     # ------------------------------------------------------------------ helpers
     def _scorer(self):
-        if self.reranker is not None:
-            return self.reranker.score
+        if self.evidence_model is not None:
+            return self.evidence_model.score
 
         def cos(q: str, sents: list[str]) -> np.ndarray:
             vecs = self.embedder.embed([q, *sents])
             return vecs[1:] @ vecs[0]
 
         return cos
+
+    def _evidence_scorer(self, soft: str, units: list[Unit]):
+        """Score every description sentence on the page in one call (one HTTP request on a remote model)."""
+        sents = sorted({x for u in units for x in SENT_SPLIT.split(u.description_en)[1:]})
+        try:
+            scores = dict(zip(sents, self._scorer()(soft, sents), strict=True))
+        except Exception as e:
+            log.warning("evidence scoring skipped: %r", e)
+            return None
+        return lambda _q, ss: np.asarray([scores.get(x, 0.0) for x in ss])
 
     # ------------------------------------------------------------------ turn
     def turn(
@@ -180,7 +200,11 @@ class SearchEngine:
                         )
                     )
                 }
-                scorer = self._scorer() if pq.soft_preferences else None
+                scorer = (
+                    self._evidence_scorer(pq.soft_preferences, [units[s.unit_id] for s in page])
+                    if pq.soft_preferences and page
+                    else None
+                )
                 eff = pq.model_copy(update={"filters": relaxed}) if relaxations else pq
                 hits = [to_hit(units[s.unit_id], s, eff, lang, scorer, pq.filters) for s in page]
                 timings["respond"] = (time.perf_counter() - t) * 1000

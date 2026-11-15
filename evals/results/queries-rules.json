@@ -32,8 +32,10 @@
   "clarification_accuracy": 1.0,
   "zero_result_rate": 0.031,
   "latency_ms": {
-    "p50": 9.3,
-    "p95": 12.3
+    "p50": 23.1,
+    "p95": 34.4
   },
+  "grounded_turn_rate": 1.0,
+  "ungrounded": [],
   "misses": []
 }

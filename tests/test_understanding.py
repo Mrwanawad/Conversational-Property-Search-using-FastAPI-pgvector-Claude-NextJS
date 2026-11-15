@@ -100,3 +100,10 @@ def test_negation_removes_instead_of_adding():
     assert english.filters.amenities == []
     ready = r.parse("ستوديو في أكتوبر استلام فوري تحت 3 مليون")
     assert r.parse("مش لازم استلام فوري", ready).filters.ready_to_move is None
+
+
+def test_bare_mn_is_franco_from_not_a_million():
+    p = RuleParser()
+    assert p.parse("villa fe zayed 2orayeba mn el madares").filters.budget_max is None
+    assert p.parse("sha2a ta7t 5 mn").filters.budget_max == 5_000_000
+    assert p.parse("شقة بمليون").filters.budget_max == 1_000_000

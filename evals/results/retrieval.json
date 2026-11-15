@@ -1,0 +1,480 @@
+{
+  "queries": 29,
+  "skipped_no_relevant_in_pool": [
+    "r-ar-07"
+  ],
+  "results": {
+    "bm25": {
+      "ndcg@10": 0.76,
+      "recall@20": 0.673,
+      "mrr": 0.903
+    },
+    "hybrid-hashing": {
+      "ndcg@10": 0.738,
+      "recall@20": 0.657,
+      "mrr": 0.886
+    },
+    "vector-bge-m3": {
+      "ndcg@10": 0.673,
+      "recall@20": 0.62,
+      "mrr": 0.788
+    },
+    "hybrid-bge-m3": {
+      "ndcg@10": 0.784,
+      "recall@20": 0.672,
+      "mrr": 0.852
+    },
+    "hybrid-bge-m3+rerank": {
+      "ndcg@10": 0.745,
+      "recall@20": 0.643,
+      "mrr": 0.88
+    },
+    "hybrid-precomputed": {
+      "ndcg@10": 0.777,
+      "recall@20": 0.67,
+      "mrr": 0.852
+    },
+    "hybrid-precomputed+rerank": {
+      "ndcg@10": 0.742,
+      "recall@20": 0.649,
+      "mrr": 0.88
+    }
+  },
+  "per_query": [
+    {
+      "id": "r-en-01",
+      "soft": "quiet calm area",
+      "pool": 105,
+      "relevant": 21,
+      "ndcg@10": {
+        "bm25": 0.863,
+        "hybrid-hashing": 0.77,
+        "vector-bge-m3": 0.7,
+        "hybrid-bge-m3": 0.864,
+        "hybrid-bge-m3+rerank": 0.735,
+        "hybrid-precomputed": 0.864,
+        "hybrid-precomputed+rerank": 0.735
+      }
+    },
+    {
+      "id": "r-en-02",
+      "soft": "close to schools",
+      "pool": 45,
+      "relevant": 6,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 0.971,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 0.983,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 0.983
+      }
+    },
+    {
+      "id": "r-en-03",
+      "soft": "family friendly",
+      "pool": 17,
+      "relevant": 4,
+      "ndcg@10": {
+        "bm25": 0.905,
+        "hybrid-hashing": 0.761,
+        "vector-bge-m3": 0.761,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 0.837,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 0.837
+      }
+    },
+    {
+      "id": "r-en-04",
+      "soft": "natural light bright",
+      "pool": 131,
+      "relevant": 20,
+      "ndcg@10": {
+        "bm25": 0.564,
+        "hybrid-hashing": 0.564,
+        "vector-bge-m3": 0.747,
+        "hybrid-bge-m3": 0.797,
+        "hybrid-bge-m3+rerank": 0.858,
+        "hybrid-precomputed": 0.797,
+        "hybrid-precomputed+rerank": 0.858
+      }
+    },
+    {
+      "id": "r-en-05",
+      "soft": "pet friendly",
+      "pool": 105,
+      "relevant": 18,
+      "ndcg@10": {
+        "bm25": 0.779,
+        "hybrid-hashing": 0.599,
+        "vector-bge-m3": 1.0,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 1.0,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 1.0
+      }
+    },
+    {
+      "id": "r-en-06",
+      "soft": "sunset view",
+      "pool": 125,
+      "relevant": 28,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 1.0,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 1.0,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 1.0
+      }
+    },
+    {
+      "id": "r-en-07",
+      "soft": "good for rental investment",
+      "pool": 44,
+      "relevant": 7,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 0.704,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 0.519,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 0.519
+      }
+    },
+    {
+      "id": "r-en-08",
+      "soft": "smart home; open kitchen",
+      "pool": 105,
+      "relevant": 40,
+      "ndcg@10": {
+        "bm25": 0.875,
+        "hybrid-hashing": 0.909,
+        "vector-bge-m3": 0.98,
+        "hybrid-bge-m3": 0.98,
+        "hybrid-bge-m3+rerank": 1.0,
+        "hybrid-precomputed": 0.942,
+        "hybrid-precomputed+rerank": 0.911
+      }
+    },
+    {
+      "id": "r-en-09",
+      "soft": "privacy; green landscape",
+      "pool": 16,
+      "relevant": 4,
+      "ndcg@10": {
+        "bm25": 0.671,
+        "hybrid-hashing": 0.81,
+        "vector-bge-m3": 0.671,
+        "hybrid-bge-m3": 0.709,
+        "hybrid-bge-m3+rerank": 0.436,
+        "hybrid-precomputed": 0.559,
+        "hybrid-precomputed+rerank": 0.436
+      }
+    },
+    {
+      "id": "r-en-10",
+      "soft": "near monorail station",
+      "pool": 131,
+      "relevant": 31,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 1.0,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 1.0,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 1.0
+      }
+    },
+    {
+      "id": "r-en-11",
+      "soft": "",
+      "pool": 56,
+      "relevant": 11,
+      "ndcg@10": {
+        "bm25": 0.0,
+        "hybrid-hashing": 0.0,
+        "vector-bge-m3": 0.0,
+        "hybrid-bge-m3": 0.0,
+        "hybrid-bge-m3+rerank": 0.0,
+        "hybrid-precomputed": 0.0,
+        "hybrid-precomputed+rerank": 0.0
+      }
+    },
+    {
+      "id": "r-en-12",
+      "soft": "storage room",
+      "pool": 85,
+      "relevant": 16,
+      "ndcg@10": {
+        "bm25": 0.936,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 0.936,
+        "hybrid-bge-m3": 0.936,
+        "hybrid-bge-m3+rerank": 1.0,
+        "hybrid-precomputed": 0.936,
+        "hybrid-precomputed+rerank": 1.0
+      }
+    },
+    {
+      "id": "r-ar-01",
+      "soft": "quiet calm area",
+      "pool": 105,
+      "relevant": 21,
+      "ndcg@10": {
+        "bm25": 0.863,
+        "hybrid-hashing": 0.77,
+        "vector-bge-m3": 0.7,
+        "hybrid-bge-m3": 0.864,
+        "hybrid-bge-m3+rerank": 0.735,
+        "hybrid-precomputed": 0.864,
+        "hybrid-precomputed+rerank": 0.735
+      }
+    },
+    {
+      "id": "r-ar-02",
+      "soft": "close to schools",
+      "pool": 45,
+      "relevant": 6,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 0.971,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 0.983,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 0.983
+      }
+    },
+    {
+      "id": "r-ar-03",
+      "soft": "natural light bright",
+      "pool": 131,
+      "relevant": 20,
+      "ndcg@10": {
+        "bm25": 0.564,
+        "hybrid-hashing": 0.564,
+        "vector-bge-m3": 0.747,
+        "hybrid-bge-m3": 0.797,
+        "hybrid-bge-m3+rerank": 0.858,
+        "hybrid-precomputed": 0.797,
+        "hybrid-precomputed+rerank": 0.858
+      }
+    },
+    {
+      "id": "r-ar-04",
+      "soft": "close to a hospital",
+      "pool": 85,
+      "relevant": 7,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 0.863,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 0.991,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 0.991
+      }
+    },
+    {
+      "id": "r-ar-05",
+      "soft": "open view",
+      "pool": 125,
+      "relevant": 17,
+      "ndcg@10": {
+        "bm25": 0.631,
+        "hybrid-hashing": 0.643,
+        "vector-bge-m3": 0.343,
+        "hybrid-bge-m3": 0.619,
+        "hybrid-bge-m3+rerank": 0.539,
+        "hybrid-precomputed": 0.619,
+        "hybrid-precomputed+rerank": 0.539
+      }
+    },
+    {
+      "id": "r-ar-06",
+      "soft": "modern design; open kitchen",
+      "pool": 105,
+      "relevant": 34,
+      "ndcg@10": {
+        "bm25": 0.82,
+        "hybrid-hashing": 0.82,
+        "vector-bge-m3": 0.889,
+        "hybrid-bge-m3": 0.897,
+        "hybrid-bge-m3+rerank": 0.866,
+        "hybrid-precomputed": 0.897,
+        "hybrid-precomputed+rerank": 0.872
+      }
+    },
+    {
+      "id": "r-ar-08",
+      "soft": "high floor",
+      "pool": 44,
+      "relevant": 4,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 0.884,
+        "vector-bge-m3": 0.698,
+        "hybrid-bge-m3": 0.949,
+        "hybrid-bge-m3+rerank": 0.955,
+        "hybrid-precomputed": 0.949,
+        "hybrid-precomputed+rerank": 0.955
+      }
+    },
+    {
+      "id": "r-fr-01",
+      "soft": "quiet calm area",
+      "pool": 105,
+      "relevant": 21,
+      "ndcg@10": {
+        "bm25": 0.863,
+        "hybrid-hashing": 0.77,
+        "vector-bge-m3": 0.7,
+        "hybrid-bge-m3": 0.864,
+        "hybrid-bge-m3+rerank": 0.735,
+        "hybrid-precomputed": 0.864,
+        "hybrid-precomputed+rerank": 0.735
+      }
+    },
+    {
+      "id": "r-fr-02",
+      "soft": "close to schools",
+      "pool": 151,
+      "relevant": 22,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 1.0,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 1.0,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 1.0
+      }
+    },
+    {
+      "id": "r-fr-03",
+      "soft": "",
+      "pool": 131,
+      "relevant": 20,
+      "ndcg@10": {
+        "bm25": 0.064,
+        "hybrid-hashing": 0.064,
+        "vector-bge-m3": 0.064,
+        "hybrid-bge-m3": 0.064,
+        "hybrid-bge-m3+rerank": 0.064,
+        "hybrid-precomputed": 0.064,
+        "hybrid-precomputed+rerank": 0.064
+      }
+    },
+    {
+      "id": "r-fr-04",
+      "soft": "open view",
+      "pool": 125,
+      "relevant": 17,
+      "ndcg@10": {
+        "bm25": 0.631,
+        "hybrid-hashing": 0.643,
+        "vector-bge-m3": 0.343,
+        "hybrid-bge-m3": 0.619,
+        "hybrid-bge-m3+rerank": 0.539,
+        "hybrid-precomputed": 0.619,
+        "hybrid-precomputed+rerank": 0.539
+      }
+    },
+    {
+      "id": "r-fr-05",
+      "soft": "",
+      "pool": 85,
+      "relevant": 3,
+      "ndcg@10": {
+        "bm25": 0.0,
+        "hybrid-hashing": 0.0,
+        "vector-bge-m3": 0.0,
+        "hybrid-bge-m3": 0.0,
+        "hybrid-bge-m3+rerank": 0.0,
+        "hybrid-precomputed": 0.0,
+        "hybrid-precomputed+rerank": 0.0
+      }
+    },
+    {
+      "id": "r-fr-06",
+      "soft": "corner unit",
+      "pool": 105,
+      "relevant": 18,
+      "ndcg@10": {
+        "bm25": 0.934,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 0.29,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 1.0,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 1.0
+      }
+    },
+    {
+      "id": "r-mx-01",
+      "soft": "quiet calm area; family friendly",
+      "pool": 105,
+      "relevant": 32,
+      "ndcg@10": {
+        "bm25": 0.883,
+        "hybrid-hashing": 0.613,
+        "vector-bge-m3": 0.872,
+        "hybrid-bge-m3": 0.889,
+        "hybrid-bge-m3+rerank": 0.55,
+        "hybrid-precomputed": 0.87,
+        "hybrid-precomputed+rerank": 0.537
+      }
+    },
+    {
+      "id": "r-mx-02",
+      "soft": "privacy",
+      "pool": 45,
+      "relevant": 8,
+      "ndcg@10": {
+        "bm25": 0.329,
+        "hybrid-hashing": 0.362,
+        "vector-bge-m3": 0.348,
+        "hybrid-bge-m3": 0.348,
+        "hybrid-bge-m3+rerank": 0.486,
+        "hybrid-precomputed": 0.348,
+        "hybrid-precomputed+rerank": 0.486
+      }
+    },
+    {
+      "id": "r-mx-03",
+      "soft": "near monorail station",
+      "pool": 131,
+      "relevant": 31,
+      "ndcg@10": {
+        "bm25": 1.0,
+        "hybrid-hashing": 1.0,
+        "vector-bge-m3": 1.0,
+        "hybrid-bge-m3": 1.0,
+        "hybrid-bge-m3+rerank": 1.0,
+        "hybrid-precomputed": 1.0,
+        "hybrid-precomputed+rerank": 1.0
+      }
+    },
+    {
+      "id": "r-mx-04",
+      "soft": "open view",
+      "pool": 77,
+      "relevant": 13,
+      "ndcg@10": {
+        "bm25": 0.864,
+        "hybrid-hashing": 0.86,
+        "vector-bge-m3": 0.217,
+        "hybrid-bge-m3": 0.533,
+        "hybrid-bge-m3+rerank": 0.936,
+        "hybrid-precomputed": 0.533,
+        "hybrid-precomputed+rerank": 0.936
+      }
+    }
+  ]
+}

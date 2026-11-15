@@ -1,0 +1,30 @@
+{"id": "r-en-01", "lang": "en", "query": "apartment in New Cairo, quiet street away from the noise", "tags": ["quiet"]}
+{"id": "r-en-02", "lang": "en", "query": "villa in Sheikh Zayed close to international schools", "tags": ["schools"]}
+{"id": "r-en-03", "lang": "en", "query": "family friendly townhouse in October, safe for kids", "tags": ["family"]}
+{"id": "r-en-04", "lang": "en", "query": "flat in the New Capital with lots of natural light", "tags": ["light"]}
+{"id": "r-en-05", "lang": "en", "query": "pet friendly apartment in New Cairo, I have a dog", "tags": ["pets"]}
+{"id": "r-en-06", "lang": "en", "query": "chalet on the North Coast with a sunset view", "tags": ["sunset"]}
+{"id": "r-en-07", "lang": "en", "query": "apartment in Mostakbal City good for rental investment", "tags": ["investment"]}
+{"id": "r-en-08", "lang": "en", "query": "smart home apartment in New Cairo with an open kitchen", "tags": ["smart_home", "open_kitchen"]}
+{"id": "r-en-09", "lang": "en", "query": "villa with privacy and a green landscape in New Zayed", "tags": ["privacy", "green"]}
+{"id": "r-en-10", "lang": "en", "query": "apartment near the monorail in the New Capital", "tags": ["metro"]}
+{"id": "r-en-11", "lang": "en", "query": "flat in Shorouk within walking distance of shops", "tags": ["walkable"]}
+{"id": "r-en-12", "lang": "en", "query": "apartment in October with a storage room", "tags": ["storage"]}
+{"id": "r-ar-01", "lang": "ar", "query": "شقة في التجمع في مكان هادي", "tags": ["quiet"]}
+{"id": "r-ar-02", "lang": "ar", "query": "فيلا في الشيخ زايد قريبة من المدارس", "tags": ["schools"]}
+{"id": "r-ar-03", "lang": "ar", "query": "شقة في العاصمة الادارية فيها اضاءة طبيعية", "tags": ["light"]}
+{"id": "r-ar-04", "lang": "ar", "query": "شقة في أكتوبر قريبة من مستشفى", "tags": ["hospital"]}
+{"id": "r-ar-05", "lang": "ar", "query": "شاليه في الساحل بفيو مفتوح", "tags": ["view"]}
+{"id": "r-ar-06", "lang": "ar", "query": "شقة في التجمع تصميم مودرن ومطبخ مفتوح", "tags": ["modern", "open_kitchen"]}
+{"id": "r-ar-07", "lang": "ar", "query": "تاون هاوس في زايد الجديدة مناسب للعيلة", "tags": ["family"]}
+{"id": "r-ar-08", "lang": "ar", "query": "شقة في المستقبل سيتي دور عالي", "tags": ["high_floor"]}
+{"id": "r-fr-01", "lang": "franco", "query": "sha2a fel tagamo3 hadya", "tags": ["quiet"]}
+{"id": "r-fr-02", "lang": "franco", "query": "villa fe zayed 2orayeba mn el madares", "tags": ["schools"]}
+{"id": "r-fr-03", "lang": "franco", "query": "sha2a fel 3asma feeha eda2a tabe3eya", "tags": ["light"]}
+{"id": "r-fr-04", "lang": "franco", "query": "chalet fel sa7el feeh view", "tags": ["view"]}
+{"id": "r-fr-05", "lang": "franco", "query": "sha2a fe october ard", "tags": ["ground_floor"]}
+{"id": "r-fr-06", "lang": "franco", "query": "sha2a fel tagamo3 corner", "tags": ["corner"]}
+{"id": "r-mx-01", "lang": "mixed", "query": "شقة في التجمع quiet و family friendly", "tags": ["quiet", "family"]}
+{"id": "r-mx-02", "lang": "mixed", "query": "villa fel sheikh zayed فيها privacy", "tags": ["privacy"]}
+{"id": "r-mx-03", "lang": "mixed", "query": "apartment fel 3asma قريبة من المونوريل", "tags": ["metro"]}
+{"id": "r-mx-04", "lang": "mixed", "query": "chalet fel Sokhna with a view", "tags": ["view"]}

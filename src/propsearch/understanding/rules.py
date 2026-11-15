@@ -47,6 +47,11 @@ class Atom:
     magnitude: str = ""  # "" | "million" | "thousand" | "percent" | "meter"
     pos: int = 0
     used: bool = False
+    surface: str = ""
+
+
+# Short forms that only mean "million" after a number: bare "mn" is Franco for "from" ("2orayeba mn").
+_MILLION_ABBR = {"m", "mn", "mil", "mill", "mio"}
 
 
 def _atoms(tq: TaggedQuery) -> list[Atom]:
@@ -73,7 +78,7 @@ def _atoms(tq: TaggedQuery) -> list[Atom]:
                 )
             else:
                 for c in it.concepts:
-                    raw.append(Atom("c", c))
+                    raw.append(Atom("c", c, surface=it.surface))
         else:
             tok = it
             if tok.replace(".", "", 1).isdigit():
@@ -95,6 +100,7 @@ def _atoms(tq: TaggedQuery) -> list[Atom]:
         if (
             a.kind == "c"
             and a.value == "unit:million"
+            and a.surface not in _MILLION_ABBR
             and (not out or out[-1].kind != "num" or out[-1].magnitude)
         ):
             out.append(Atom("num", 1_000_000, "million"))

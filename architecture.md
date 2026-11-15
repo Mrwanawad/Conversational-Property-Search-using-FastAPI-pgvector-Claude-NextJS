@@ -50,13 +50,17 @@ Buyers search like they talk: "3 غرف في التجمع تحت 8 مليون ت
 - Retrieval: PostgreSQL + pgvector, BM25 (rank_bm25 / OpenSearch), bge-m3, bge-reranker
 - Backend: FastAPI, SQLAlchemy
 - Frontend: Next.js chat UI (RTL support)
-- Evaluation: Ragas, custom labeled query set, ranx (IR metrics)
+- Evaluation: labelled query sets (parser), labelled retrieval pool + ranx (NDCG, recall, MRR), deterministic groundedness check
 - Observability: Langfuse; DevOps: Docker, GitHub Actions, pytest, ruff
 
 ## Tools Not Used (and why)
 - LLM generating unit facts: answers use only DB fields (no hallucinated prices).
 - Pure vector search: compound names, unit codes, numbers need lexical + SQL.
 - Fine-tuned LLM: tool calling + schema is enough; cheaper to maintain.
+- Ragas: replies are templates over DB fields, so faithfulness is checked exactly (every number traces to
+  the DB or the user's filters) instead of by an LLM judge that can itself be wrong.
+- A model server in production: the parser emits soft wishes from a closed set of phrases, so bge-m3
+  query vectors and cross-encoder scores are computed offline and read from Postgres at serve time.
 
 ## Methodologies
 - Query-to-filter extraction with schema validation; hybrid retrieval; reranking.
@@ -75,6 +79,8 @@ Buyers search like they talk: "3 غرف في التجمع تحت 8 مليون ت
 - Click-through and inquiry feedback as implicit relevance labels.
 
 ## Deployment Plan
-- Backend: Render (FastAPI Docker + Postgres with pgvector).
+- Backend: Vercel Python function (FastAPI) + Neon Postgres with pgvector. Docker image and a Render
+  Blueprint for container hosts.
 - Frontend: Vercel (Next.js chat UI).
+- Models: bge-m3 and bge-reranker-v2-m3 run offline (GPU or CPU); their outputs are stored in Postgres.
 - Demo inventory: synthetic sample units.

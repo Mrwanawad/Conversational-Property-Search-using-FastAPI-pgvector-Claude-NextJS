@@ -28,7 +28,7 @@ from propsearch.fmt import amenity_name, area_name, egp, finish_name, landmark_n
 from propsearch.retrieval.ranker import Scored
 
 log = logging.getLogger(__name__)
-_SENT = re.compile(r"(?<=[.!؟?])\s+")
+SENT_SPLIT = re.compile(r"(?<=[.!؟?])\s+")
 
 
 def best_plan(unit: Unit, f: SearchFilters) -> PlanSummary | None:
@@ -65,8 +65,8 @@ def evidence_sentence(unit: Unit, soft: str, lang: str, scorer) -> str | None:
         return None
     # Score the English sentences (same language as the soft text); quote the parallel Arabic sentence
     # when replying in Arabic. Descriptions are written sentence-aligned.
-    en = _SENT.split(unit.description_en)[1:]  # skip the generic first sentence
-    ar = _SENT.split(unit.description_ar)[1:]
+    en = SENT_SPLIT.split(unit.description_en)[1:]  # skip the generic first sentence
+    ar = SENT_SPLIT.split(unit.description_ar)[1:]
     if not en:
         return None
     scores = scorer(soft, en)

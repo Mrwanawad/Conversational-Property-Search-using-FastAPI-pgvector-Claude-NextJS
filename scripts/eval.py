@@ -10,6 +10,9 @@ Metrics:
 - filter extraction: exact match per query and per-field precision / recall / F1
 - clarification: asked when expected, not asked otherwise
 - zero-result rate (after relaxation) and latency p50 / p95 of the whole turn
+- groundedness: every unit field in the reply equals its DB row, every plan exists in the DB, and every
+  number in the message and the per-unit reasons traces to the DB, the user's filters or the match count.
+  Deterministic, so it replaces an LLM-judged faithfulness score (Ragas) for template replies.
 
 Writes evals/results/<set>-<parser>[-<model>].json and prints a summary. Exits 1 if exact match falls under --min-exact.
 """
@@ -29,8 +32,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from propsearch.config import Settings  # noqa: E402
-from propsearch.db import get_engine, session_factory  # noqa: E402
+from propsearch.db import Unit, get_engine, session_factory  # noqa: E402
+from propsearch.domain import SearchTurnResponse  # noqa: E402
 from propsearch.pipeline import SearchEngine  # noqa: E402
+from propsearch.respond import _NUM, _allowed_numbers  # noqa: E402
 from propsearch.seed import ensure_seeded  # noqa: E402
 
 # Derived defaults, not something the user said: the radius that comes with a landmark.
@@ -51,6 +56,63 @@ def score(pred: dict, gold: dict) -> tuple[bool, dict[str, tuple[int, int, int]]
         fn = int(k in gold and not tp)
         per[k] = (tp, fp, fn)
     return pred == gold, per
+
+
+FIELDS = ("code", "price", "bua_m2", "bedrooms", "bathrooms", "garden_m2", "floor", "area", "unit_type")
+
+
+def grounding_errors(db, r: SearchTurnResponse) -> list[str]:
+    """Reply facts that do not come from the database or the user's own words."""
+    errors = []
+    shared = [
+        r.parsed.filters.model_dump(mode="json"),
+        [x.model_dump() for x in r.relaxations],
+        r.total_matches,
+        len(r.units),
+    ]
+    allowed = _allowed_numbers(shared)
+    for h in r.units:
+        u = db.get(Unit, h.id)
+        for f in FIELDS:
+            if getattr(h, f) != getattr(u, f):
+                errors.append(f"{h.code}.{f}: reply {getattr(h, f)!r} != db {getattr(u, f)!r}")
+        plans = [p for p in u.compound.plans]
+        if h.best_plan:
+            bp = h.best_plan
+            if not any(
+                (p.name, p.down_payment_pct, p.years) == (bp.name, bp.down_payment_pct, bp.years)
+                for p in plans
+            ):
+                errors.append(f"{h.code}: plan {bp.name} not in db")
+            if abs(bp.down_payment - u.price * bp.down_payment_pct / 100) > 0.01 * u.price:
+                errors.append(f"{h.code}: down payment {bp.down_payment} off for {bp.down_payment_pct}%")
+        row = {c.name: getattr(u, c.name) for c in Unit.__table__.columns if c.name != "embedding"}
+        row["updated_at"] = None
+        unit_allowed = allowed | _allowed_numbers(
+            [
+                row,
+                [{"pct": p.down_payment_pct, "years": p.years, "disc": p.cash_discount_pct} for p in plans],
+                h.best_plan.model_dump() if h.best_plan else None,
+                h.price_per_m2,
+                # arithmetic on DB and user values: gap to the budget, distance rounded for display
+                abs(r.parsed.filters.budget_max - u.price) if r.parsed.filters.budget_max else None,
+                round(h.distance_km, 1) if h.distance_km is not None else None,
+            ]
+        )
+        for reason in h.reasons:
+            for text in (reason.en, reason.ar):
+                bad = [
+                    n
+                    for n in _NUM.findall(text)
+                    if n.replace(",", "") not in unit_allowed and n not in unit_allowed
+                ]
+                if bad:
+                    errors.append(f"{h.code} reason {text!r}: {bad}")
+        allowed |= unit_allowed
+    bad = [n for n in _NUM.findall(r.message) if n.replace(",", "") not in allowed and n not in allowed]
+    if bad:
+        errors.append(f"message {r.message!r}: {bad}")
+    return errors
 
 
 def database_url() -> str:
@@ -96,8 +158,16 @@ def main() -> int:
     by_lang: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     rows, latencies, zero, clar_ok, misses = [], [], 0, 0, []
     llm_ms, cost = [], 0.0
+    grounded, ungrounded, judged = 0, [], 0
+    db = session_factory(engine)()
     for it in items:
         r = search.turn(it["query"], simulated=True)
+        if r.units:
+            judged += 1
+            errs = grounding_errors(db, r)
+            grounded += not errs
+            if errs:
+                ungrounded.append({"id": it["id"], "errors": errs})
         pred = r.parsed.filters.model_dump(mode="json", exclude_defaults=True)
         exact, per = score(pred, it["filters"])
         for k, (tp, fp, fn) in per.items():
@@ -147,6 +217,8 @@ def main() -> int:
         "clarification_accuracy": round(clar_ok / n, 3),
         "zero_result_rate": round(zero / n, 3),
         "latency_ms": {"p50": round(statistics.median(lat), 1), "p95": round(lat[int(0.95 * (n - 1))], 1)},
+        "grounded_turn_rate": round(grounded / judged, 3) if judged else None,
+        "ungrounded": ungrounded,
         "misses": misses,
     }
     if args.parser != "rules":
@@ -170,8 +242,10 @@ def main() -> int:
     dest = ROOT / "evals/results" / f"{set_name}-{args.parser}{model_tag}.json"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    summary = {k: v for k, v in out.items() if k not in ("misses", "per_field_f1")}
+    summary = {k: v for k, v in out.items() if k not in ("misses", "per_field_f1", "ungrounded")}
     print(json.dumps(summary, ensure_ascii=False, indent=2))
+    for u in ungrounded:
+        print(f"UNGROUNDED {u['id']}: {u['errors']}")
     for m in misses:
         print(f"MISS {m['id']}: gold={m['gold']} pred={m['pred']}")
     return 0 if out["exact_match"] >= args.min_exact else 1

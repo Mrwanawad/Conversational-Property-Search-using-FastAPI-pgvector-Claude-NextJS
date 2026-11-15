@@ -66,6 +66,30 @@ Notes:
 - The gpt-oss-20b dev run hit the free-tier quota on every call, so it has no dev number. The every-turn gpt-oss-120b dev run also fell back to rules on 16% of turns (cause not logged in that run); its two misses (dropped area, dropped garden on Franco queries) are model misses.
 - Rules-only turn latency is 9 ms p50 / 12 ms p95 (hashing embedder, no reranker, laptop). Zero-result rate after relaxation is 0.031 on dev: a villa under 2M has no match at any relaxation, so the reply gives the price floor.
 - When an LLM call fails (rate limit, timeout, invalid tool arguments), that turn uses the rule parser. Search never goes down because of a model.
+- Groundedness is 1.00 on both sets (`grounded_turn_rate`): every unit field in a reply equals its DB row, every payment plan exists, and every number in the message and the reasons traces to the DB, the user's own filters or arithmetic on them (gap to budget, rounded distance). It's a deterministic check, so it replaces an LLM-judged faithfulness score such as Ragas.
+
+### Ranking quality on soft wishes (labelled pool)
+
+`evals/retrieval.jsonl` has 30 soft-wish queries ("quiet street", "close to international schools", "فيها اضاءة طبيعية", "sha2a fel tagamo3 hadya") in English, Arabic, Franco and mixed. Each query's SQL candidate set is the pool. A unit is relevant when its hidden generator tags (written into the description as paraphrases and never stored in the DB) include the query's tags. Because every relevant unit in the pool is known, recall is measurable, which click logs can't give. `python scripts/retrieval_eval.py` scores the final ranked list (relevance plus business rules) with ranx; superscripts mark a significant win (paired t-test, p < 0.05) over the lettered row. 29 queries are scored; one has no relevant unit in its pool.
+
+| | Ranking | NDCG@10 | Recall@20 | MRR |
+|---|---|---|---|---|
+| a | BM25 | 0.760ᶜ | 0.673ᵇ | 0.903ᶜ |
+| b | BM25 + hashing vectors (previous deploy) | 0.738 | 0.657 | 0.886ᶜ |
+| c | bge-m3 vectors only | 0.673 | 0.620 | 0.788 |
+| d | BM25 + bge-m3 (RRF) | **0.784**ᶜ | 0.672ᶜ | 0.852ᶜ |
+| e | BM25 + bge-m3 + bge-reranker-v2-m3 | 0.745 | 0.643 | 0.880 |
+| f | BM25 + bge-m3, precomputed (deployed) | 0.777ᶜ | 0.670 | 0.852ᶜ |
+| g | f + precomputed reranker | 0.742 | 0.649 | 0.880 |
+
+What it says:
+- **bge-m3 helps only inside the hybrid.** On its own it's the weakest row. Fused with BM25 it's the best (+0.046 NDCG@10 over the previous deploy), with the clearest gains on "natural light" (0.56 to 0.80), "pet friendly" (0.78 to 1.0) and "family friendly".
+- **The cross-encoder hurts here,** so it is off. It drops compound wishes ("quiet; family friendly" 0.89 to 0.55) and "good for rental investment" (1.0 to 0.52), because it scores a short phrase against a whole bilingual listing. Its scores are still stored and used for one job: picking the description sentence quoted as evidence under each unit.
+- **BM25 is strong because the parsers canonicalise wishes** to fixed phrases ("hadya" and "هادي" both become "quiet calm area"). With that, the gap between rankers is small, and only bge-m3 vectors alone are significantly worse.
+- **Three queries score 0 with every ranker** because the rules don't read the wish at all ("walking distance of shops", "eda2a tabe3eya", "ard"). That's a dictionary gap, not a ranking one. The gated LLM parser covers those phrasings live.
+- "Precomputed" (row f) is what serves: the 0.007 loss against row d is from averaging per-phrase vectors for compound wishes instead of embedding the joined text.
+
+The pool also caught a parser bug: Franco "mn" ("from", as in "2orayeba mn el madares") was read as "1 million" and filtered every villa out. Fixed, with a regression test.
 
 ### Ranking quality from clicks (annotator pilot)
 
@@ -81,7 +105,7 @@ Notes:
 | Abandonment | 18% |
 | Turns ending in an inquiry | 82% |
 
-The weakest turns (NDCG about 0.52) were soft wishes: "big garden" ranked 90 m² gardens above 500 m² ones, and "quiet" ranked pet-friendly units first. That is the hashing embedder the free deployment uses. bge-m3 plus the cross-encoder is the fix, and these turns are the before/after test for it.
+The weakest turns (NDCG about 0.52) were soft wishes: "big garden" ranked 90 m² gardens above 500 m² ones, and "quiet" ranked pet-friendly units first. The labelled pool above measures the second kind and moved the deploy to BM25 + bge-m3. "Big garden" is a size, not a meaning: no embedder orders 90 vs 500 m², so it needs a garden-size preference in the parser (open).
 
 The pilot also found five bugs, all fixed with regression tests where they apply:
 - After a +10% budget relaxation, a unit above the user's budget was described as "under your budget". The reason now compares with the budget the user asked for and says "over your budget".
@@ -162,6 +186,7 @@ The live demo runs on free tiers with no card: two Vercel projects and a Neon Po
 
 - **API:** Vercel Python function. `api/index.py` wraps the FastAPI app, `vercel.json` routes every path to it, and `requirements.txt` holds the runtime deps. The app sets itself up on the first request because serverless runtimes may skip ASGI lifespan.
 - **Database:** Neon via the Vercel marketplace (`vercel integration add neon`), which injects `DATABASE_URL`. Seed it once from any machine: `DATABASE_URL=<neon direct url> python -m propsearch.seed`.
+- **Models without a model server:** bge-m3 doesn't fit a serverless function, and hosted inference isn't free. But the parsers emit soft wishes from a closed set of 20 phrases, so every model output a turn can need is known in advance. On a machine with the models (`pip install -e ".[ml]"`, GPU optional), `python -m propsearch.seed --embedder bge-m3` writes the unit vectors and `python -m propsearch.retrieval.precomputed` writes the 20 phrase vectors plus 36k cross-encoder scores (phrase × listing and phrase × description sentence). The API runs with `EMBEDDER=bge-m3 EMBED_DEVICE=precomputed`, so a turn's vector stage is one pgvector query (~10 ms). LLM free text such as "near international schools" is mapped onto the phrases through the synonym dictionary. Anything unmapped ranks with BM25 for that turn. Outputs are cached on disk by content hash, so loading the same inventory into another database takes seconds. Rerun both commands when the inventory changes.
 - **Web:** Vercel project with root directory `frontend` and `API_URL=https://<api-project>.vercel.app`.
 - **Containers:** the same API image runs anywhere Docker does. `render.yaml` is a Render Blueprint for it, but Render requires a card even on the free plan.
 
@@ -188,19 +213,21 @@ See `.env.example`.
 | `LLM_MODEL` | `openai/gpt-oss-120b` | any tool-calling model on that endpoint |
 | `LLM_MODE` | `on_unknown` | `always` (LLM on every turn) |
 | `EMBEDDER` | `hashing` | `bge-m3` (downloads the model; `pip install -e ".[ml]"`) |
-| `RERANKER` | `none` | `bge` (bge-reranker-v2-m3 cross-encoder) |
+| `RERANKER` | `none` | `bge` (bge-reranker-v2-m3 cross-encoder; measured worse on the labelled pool, see Results) |
+| `EMBED_DEVICE` | `cpu` | `cuda` (fp16), `precomputed` (model outputs read from Postgres, deployed), `hf` (Hugging Face Inference, `HF_TOKEN`, needs paid credits) |
 | `LLM_SUMMARY` | `false` | Adds a Claude narrative under the template reply |
 | `LANGFUSE_*` | empty | Traces each turn (understand, retrieve) when set |
 
 ## Stack
 
-Python, FastAPI, Pydantic, SQLAlchemy, PostgreSQL + pgvector, rank-bm25, sentence-transformers (bge-m3, bge-reranker-v2-m3), Anthropic SDK (tool calling), camel-tools (optional), Langfuse, Next.js, TypeScript, Playwright, pytest, ruff, Docker, GitHub Actions, Render, Vercel.
+Python, FastAPI, Pydantic, SQLAlchemy, PostgreSQL + pgvector, rank-bm25, sentence-transformers (bge-m3, bge-reranker-v2-m3), Anthropic SDK (tool calling), camel-tools (optional), Langfuse, ranx, Next.js, TypeScript, Playwright, pytest, ruff, Docker, GitHub Actions, Render, Vercel.
 
 ## Design choices
 
 - **SQL for hard filters, hybrid search for soft wishes.** Budgets, bedrooms and unit codes are exact; "quiet, good for families" is not. Pure vector search would miss numbers and compound names.
 - **Rules first, LLM optional.** The rule parser is free, fast and deterministic, and it covers the labelled set. Claude is used when it's enabled and falls back to rules on any failure, so search never goes down because of a model.
 - **No generated facts.** Replies are built from DB fields. The optional narrative is checked against those fields before it's shown.
+- **Precompute instead of serving models.** A closed set of wishes turns a GPU at query time into a table lookup. If a model call does fail (remote timeout, unmapped wish), that stage is skipped and the turn ranks with BM25.
 - **Explain, don't hide, empty results.** Relaxation says what was changed and how many units it unlocked; binding constraints are logged as unmet demand.
 
 ## Data
@@ -210,8 +237,8 @@ All inventory is synthetic (`data/generate.py`, fixed seed). Developer, compound
 ## Not built yet
 
 - Scored Claude parser run (built and tested for fallback; no Anthropic API key).
-- Ranking metrics on real traffic and a bge-m3 / reranker comparison. `scripts/click_metrics.py` is ready; it needs real users instead of the annotator pilot above.
-- The live demo runs the hashing embedder and no reranker to fit a serverless function. bge-m3 and the cross-encoder need a bigger box.
+- Ranking metrics on real traffic. `scripts/click_metrics.py` is ready; it needs real users instead of the annotator pilot above.
+- A garden-size preference ("big garden"), and soft wishes the rules can't read yet (see the three zero rows above).
 
 ## License
 

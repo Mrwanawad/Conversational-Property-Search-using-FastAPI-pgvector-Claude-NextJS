@@ -148,6 +148,23 @@ class Meta(Base):
     value: Mapped[str] = mapped_column(Text)
 
 
+class SoftVector(Base):
+    """bge-m3 vector of each soft-preference phrase the parsers emit, computed offline."""
+
+    __tablename__ = "soft_vectors"
+    phrase: Mapped[str] = mapped_column(Text, primary_key=True)
+    embedding = mapped_column(Vector(EMBED_DIM))
+
+
+class SoftScore(Base):
+    """Cross-encoder score of (soft phrase, text) for every unit document and description sentence."""
+
+    __tablename__ = "soft_scores"
+    phrase: Mapped[str] = mapped_column(Text, primary_key=True)
+    text_sha: Mapped[str] = mapped_column(String(16), primary_key=True)
+    score: Mapped[float] = mapped_column(Float)
+
+
 @lru_cache(maxsize=4)
 def get_engine(url: str | None = None) -> Engine:
     return create_engine(url or get_settings().database_url, pool_pre_ping=True, pool_size=5, max_overflow=5)
